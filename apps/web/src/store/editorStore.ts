@@ -88,12 +88,19 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             break
           }
 
-          case 'removeTrackElement':
+          case 'removeTrackElement': {
+            const removedUid = action.payload.uid
+            // Find next element to select
+            const allEls = state.track.flatMap(l => l.lineList)
+            const removedIdx = allEls.findIndex(el => el.uid === removedUid)
+            const nextEl = allEls[removedIdx + 1] || allEls[removedIdx - 1] || null
+            state.chooseDataUid = nextEl ? nextEl.uid : ''
             for (const line of state.track) {
-              const idx = line.lineList.findIndex(el => el.uid === action.payload.uid)
+              const idx = line.lineList.findIndex(el => el.uid === removedUid)
               if (idx !== -1) { line.lineList.splice(idx, 1); break }
             }
             break
+          }
 
           case 'updateElementPos': {
             const { uid, updates } = action.payload

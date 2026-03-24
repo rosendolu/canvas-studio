@@ -70,9 +70,14 @@ export const useLiveStore = create<LiveState & LiveActions>()(
             break
           }
 
-          case 'removeElement':
-            page.elements = page.elements.filter(el => el.uid !== action.payload)
+          case 'removeElement': {
+            const removedUid = action.payload as string
+            const idx = page.elements.findIndex(el => el.uid === removedUid)
+            const next = page.elements[idx + 1] || page.elements[idx - 1] || null
+            page.activeElementsUid = next ? next.uid : ''
+            page.elements = page.elements.filter(el => el.uid !== removedUid)
             break
+          }
 
           case 'updateElementsPos': {
             const { elements, drawWidth, drawHeight } = action.payload

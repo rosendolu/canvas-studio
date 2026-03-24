@@ -31,8 +31,8 @@ function makeEl(overrides: Partial<CanvasElement>): Omit<CanvasElement, 'uid'> {
   }
 }
 
-/** Horizontal scrollable strip of asset thumbnails */
-function AssetStrip({ items, accentColor, onAdd }: {
+/** Stack grid of asset thumbnails — 2 per row, wraps vertically */
+function AssetGrid({ items, accentColor, onAdd }: {
   items: { src: string; label: string; originalWidth?: number; originalHeight?: number }[]
   accentColor: string
   onAdd: (item: typeof items[number]) => void
@@ -40,23 +40,15 @@ function AssetStrip({ items, accentColor, onAdd }: {
   return (
     <Box
       style={{
-        display: 'flex',
-        flexDirection: 'row',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
         gap: 6,
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        paddingBottom: 4,
-        scrollbarWidth: 'thin',
-        flexWrap: 'nowrap',
       }}
     >
       {items.map(item => (
         <Tooltip key={item.label} label={item.label} position="top" withArrow>
           <Box
             style={{
-              flexShrink: 0,
-              width: 72,
-              height: 52,
               cursor: 'pointer',
               borderRadius: 6,
               overflow: 'hidden',
@@ -67,7 +59,7 @@ function AssetStrip({ items, accentColor, onAdd }: {
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
             onClick={() => onAdd(item)}
           >
-            <Image src={item.src} w={72} h={52} fit="cover" />
+            <Image src={item.src} h={52} fit="cover" style={{ display: 'block', width: '100%' }} />
           </Box>
         </Tooltip>
       ))}
@@ -167,7 +159,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
           <Stack gap="sm">
             <ColorInput size="xs" label={t('elements.bgColor')} value={bgColor} onChange={onBgColorChange} format="hex" />
             <Divider label={t('elements.defaultAssets')} labelPosition="center" />
-            <AssetStrip
+            <AssetGrid
               items={DEFAULT_BACKGROUNDS}
               accentColor="var(--mantine-color-violet-5)"
               onAdd={bg => addBackground(bg.src, bg.originalWidth, bg.originalHeight)}
@@ -182,7 +174,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
         <Tabs.Panel value="elements" style={{ flex: 1, overflowY: 'auto' }} p="sm">
           <Stack gap="sm">
             <Text size="xs" c="dimmed" fw={500}>{t('elements.stickers')}</Text>
-            <AssetStrip
+            <AssetGrid
               items={DEFAULT_STICKERS}
               accentColor="var(--mantine-color-cyan-5)"
               onAdd={s => addSticker(s.src, s.originalWidth, s.originalHeight)}
@@ -203,7 +195,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
         <Tabs.Panel value="mask" style={{ flex: 1, overflowY: 'auto' }} p="sm">
           <Stack gap="sm">
             <Text size="xs" c="dimmed">{t('elements.mask')}</Text>
-            <AssetStrip
+            <AssetGrid
               items={DEFAULT_MASKS}
               accentColor="var(--mantine-color-teal-5)"
               onAdd={m => addMask(m.src, m.originalWidth, m.originalHeight)}
