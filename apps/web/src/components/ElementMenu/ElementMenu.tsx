@@ -99,7 +99,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
 
   return (
     <Stack gap={0} style={{ height: '100%' }}>
-      <Box px="md" py="xs" style={{ borderBottom: '1px solid var(--mantine-color-dark-5)' }}>
+      <Box px="md" py="xs" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
         <Text size="sm" fw={600}>{t('elements.panelTitle')}</Text>
       </Box>
 

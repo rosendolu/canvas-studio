@@ -1,6 +1,5 @@
-import { AppShell, Group, Title, ActionIcon, useMantineColorScheme, Anchor, Badge } from '@mantine/core'
+import { AppShell, Group, Title, ActionIcon, useMantineColorScheme, Badge } from '@mantine/core'
 import { IconSun, IconMoon, IconBrandGithub } from '@tabler/icons-react'
-import { Link, useLocation } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,7 +9,6 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
-  const location = useLocation()
   const { t, i18n } = useTranslation()
 
   const toggleLang = () => {
@@ -23,34 +21,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     <AppShell header={{ height: 56 }} padding={0} style={{ height: '100vh' }}>
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
-          <Group gap="sm">
-            <Title
-              order={4}
-              style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
-              onClick={() => window.location.href = '/'}
-            >
+          {/* Logo */}
+          <Group gap="sm" style={{ cursor: 'pointer' }} onClick={() => window.location.href = '/'}>
+            <Title order={4} style={{ color: 'inherit' }}>
               {t('appName')}
             </Title>
             <Badge variant="light" size="sm">{t('beta')}</Badge>
           </Group>
 
+          {/* Right actions */}
           <Group gap="xs">
-            <Anchor
-              component={Link}
-              to="/editor"
-              size="sm"
-              c={location.pathname.startsWith('/editor') ? 'violet' : undefined}
-            >
-              {t('nav.editor')}
-            </Anchor>
-            <Anchor
-              component={Link}
-              to="/image-editor"
-              size="sm"
-              c={location.pathname.startsWith('/image-editor') ? 'cyan' : undefined}
-            >
-              {t('nav.imageEditor')}
-            </Anchor>
             <ActionIcon
               variant="subtle"
               onClick={toggleLang}

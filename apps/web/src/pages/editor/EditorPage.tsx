@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch, ScrollArea, SimpleGrid, Image } from '@mantine/core'
+import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch } from '@mantine/core'
 import { IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import TimelineRuler from '../../components/Timeline/TimelineRuler'
@@ -55,7 +55,12 @@ export function EditorPage() {
       {/* Main area: left panel + canvas */}
       <Box style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {/* Left: Assets Panel */}
-        <Box style={{ width: 230, borderRight: '1px solid var(--mantine-color-dark-4)', background: 'var(--mantine-color-dark-8)', overflowY: 'auto' }}>
+        <Box style={{
+          width: 230,
+          borderRight: '1px solid var(--mantine-color-default-border)',
+          background: 'var(--mantine-color-body)',
+          overflowY: 'auto',
+        }}>
           <ElementMenu
             onAddElement={handleAddElement}
             bgColor={color}
@@ -63,8 +68,8 @@ export function EditorPage() {
           />
         </Box>
 
-        {/* Center: Canvas */}
-        <Box style={{ flex: 1, minWidth: 0, background: '#1a1a1a', position: 'relative' }}>
+        {/* Center: Canvas — always dark checkerboard bg for canvas preview */}
+        <Box style={{ flex: 1, minWidth: 0, background: 'var(--mantine-color-dark-9, #141414)', position: 'relative' }}>
           <CanvasPlayer
             elements={elements as CanvasElement[]}
             activeUid={chooseDataUid}
@@ -81,8 +86,13 @@ export function EditorPage() {
       </Box>
 
       {/* Timeline */}
-      <Box style={{ height: 180, borderTop: '1px solid #333', background: '#1e1e1e', flexShrink: 0 }}>
-        <Group p="xs" gap="xs" style={{ borderBottom: '1px solid #333' }}>
+      <Box style={{
+        height: 180,
+        borderTop: '1px solid var(--mantine-color-default-border)',
+        background: 'var(--mantine-color-body)',
+        flexShrink: 0,
+      }}>
+        <Group p="xs" gap="xs" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
           <Tooltip label={t('editor.stop')}>
             <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setCurrentFrame', payload: 0 })}>
               <IconPlayerStop size={14} />
@@ -124,15 +134,13 @@ export function EditorPage() {
           onFrameChange={f => dispatch({ type: 'setCurrentFrame', payload: f })}
         />
 
-        <Box p="xs" style={{ color: '#666', fontSize: 12 }}>
-          {track.length === 0
-            ? t('editor.noTrack')
-            : track.map(t => (
-                <Box key={t.uid} style={{ height: 24, lineHeight: '24px', borderBottom: '1px solid #2a2a2a' }}>
-                  {t.type} ({t.lineList.length})
-                </Box>
-              ))
-          }
+        <Box p="xs">
+          <Text size="xs" c="dimmed">
+            {track.length === 0
+              ? t('editor.noTrack')
+              : track.map(t => `${t.type} (${t.lineList.length})`).join(' · ')
+            }
+          </Text>
         </Box>
       </Box>
     </Box>

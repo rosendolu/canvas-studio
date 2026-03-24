@@ -45,7 +45,7 @@ const initialState: EditorState = {
   trackScale: 80,
   track: [],
   chooseDataUid: '',
-  color: '#000',
+  color: '#ffffff',
   maxTrackWidth: 1000,
 }
 

@@ -6,12 +6,6 @@ import { useLiveStore } from '../../store/liveStore'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 
-/**
- * Image Editor Page
- * Left: Assets Panel
- * Center: Canvas
- * Right: Properties Panel
- */
 export function ImageEditorPage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch } = useLiveStore()
   const { t } = useTranslation()
@@ -47,7 +41,10 @@ export function ImageEditorPage() {
       {/* Top Toolbar */}
       <Group
         px="md" py="xs" gap="sm"
-        style={{ borderBottom: '1px solid var(--mantine-color-dark-4)', background: 'var(--mantine-color-dark-8)' }}
+        style={{
+          borderBottom: '1px solid var(--mantine-color-default-border)',
+          background: 'var(--mantine-color-body)',
+        }}
       >
         <Text size="sm" fw={500}>🖼️ {t('nav.imageEditor')}</Text>
         <SegmentedControl
@@ -74,7 +71,12 @@ export function ImageEditorPage() {
       {/* Main Area */}
       <Box style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {/* Left: Assets */}
-        <Box style={{ width: 230, borderRight: '1px solid var(--mantine-color-dark-4)', background: 'var(--mantine-color-dark-8)', overflowY: 'auto' }}>
+        <Box style={{
+          width: 230,
+          borderRight: '1px solid var(--mantine-color-default-border)',
+          background: 'var(--mantine-color-body)',
+          overflowY: 'auto',
+        }}>
           <ElementMenu
             onAddElement={handleAddElement}
             bgColor={page.bgColor}
@@ -83,7 +85,7 @@ export function ImageEditorPage() {
         </Box>
 
         {/* Center: Canvas */}
-        <Box style={{ flex: 1, minWidth: 0, background: '#111', position: 'relative' }}>
+        <Box style={{ flex: 1, minWidth: 0, background: 'var(--mantine-color-dark-9, #141414)', position: 'relative' }}>
           <CanvasPlayer
             elements={elements}
             activeUid={activeUid}
@@ -99,7 +101,12 @@ export function ImageEditorPage() {
         </Box>
 
         {/* Right: Properties */}
-        <Box style={{ width: 220, borderLeft: '1px solid var(--mantine-color-dark-4)', background: 'var(--mantine-color-dark-8)', overflowY: 'auto' }}>
+        <Box style={{
+          width: 220,
+          borderLeft: '1px solid var(--mantine-color-default-border)',
+          background: 'var(--mantine-color-body)',
+          overflowY: 'auto',
+        }}>
           <PropertyPanel
             activeElement={activeElement}
             onUpdate={updates => {
