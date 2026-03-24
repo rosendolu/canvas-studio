@@ -148,11 +148,18 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
       </Box>
 
       <Tabs defaultValue="background" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Tabs.List grow>
-          <Tabs.Tab value="background" fz={10}>{t('elements.tabBackground')}</Tabs.Tab>
-          <Tabs.Tab value="elements" fz={10}>{t('elements.tabElements')}</Tabs.Tab>
-          <Tabs.Tab value="mask" fz={10}>{t('elements.tabMask')}</Tabs.Tab>
-          <Tabs.Tab value="text" fz={10}>{t('elements.tabText')}</Tabs.Tab>
+        <Tabs.List
+          style={{
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            scrollbarWidth: 'none',
+          }}
+        >
+          <Tabs.Tab value="background" fz={10} style={{ flexShrink: 0 }}>{t('elements.tabBackground')}</Tabs.Tab>
+          <Tabs.Tab value="elements" fz={10} style={{ flexShrink: 0 }}>{t('elements.tabElements')}</Tabs.Tab>
+          <Tabs.Tab value="mask" fz={10} style={{ flexShrink: 0 }}>{t('elements.tabMask')}</Tabs.Tab>
+          <Tabs.Tab value="text" fz={10} style={{ flexShrink: 0 }}>{t('elements.tabText')}</Tabs.Tab>
         </Tabs.List>
 
         {/* ── Background Tab ── */}
