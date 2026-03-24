@@ -68,8 +68,8 @@ export function EditorPage() {
           />
         </Box>
 
-        {/* Center: Canvas — always dark checkerboard bg for canvas preview */}
-        <Box style={{ flex: 1, minWidth: 0, background: 'var(--mantine-color-dark-9, #141414)', position: 'relative' }}>
+        {/* Center: Canvas — neutral dark stage bg regardless of theme */}
+        <Box style={{ flex: 1, minWidth: 0, background: '#2c2c2c', position: 'relative' }}>
           <CanvasPlayer
             elements={elements as CanvasElement[]}
             activeUid={chooseDataUid}

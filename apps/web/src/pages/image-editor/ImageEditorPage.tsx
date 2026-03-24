@@ -85,7 +85,7 @@ export function ImageEditorPage() {
         </Box>
 
         {/* Center: Canvas */}
-        <Box style={{ flex: 1, minWidth: 0, background: 'var(--mantine-color-dark-9, #141414)', position: 'relative' }}>
+        <Box style={{ flex: 1, minWidth: 0, background: '#2c2c2c', position: 'relative' }}>
           <CanvasPlayer
             elements={elements}
             activeUid={activeUid}
