@@ -23,11 +23,6 @@ interface PlayerProps {
   onDeleteElement?: (uid: string) => void
 }
 
-// Extra padding around Stage so Transformer anchors at canvas edges are never clipped.
-// Stage is enlarged by PAD*2 on each axis; Layer is offset by -PAD so all element
-// coordinates remain unchanged.
-const PAD = 64
-
 export default function Player({
   width,
   height,
@@ -47,7 +42,7 @@ export default function Player({
   const containerRef = useRef<HTMLDivElement>(null)
   const [focusUid, setFocusUid] = useState('')
 
-  // ── Keyboard shortcut: Backspace / Delete ──
+  // ── Keyboard: Delete / Backspace ──
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -107,6 +102,7 @@ export default function Player({
     onSetActive(type, uid)
   }
 
+  // ── Attach Transformer to active element ──
   useEffect(() => {
     const tNode = transformRef.current
     if (!activeUid) {
@@ -122,14 +118,24 @@ export default function Player({
     if (active) {
       const shape = transformRectRef.current
       if (shape) {
-        shape.position(active.position())
-        shape.width(active.width())
-        shape.height(active.height())
-        shape.scale(active.scale())
-        shape.show()
-        tNode?.nodes([active, shape])
-        tNode?.getLayer()?.batchDraw()
+        const w = active.width()
+        const h = active.height()
+        const scale = active.scale()
+        const position = active.position()
+        if (w) {
+          shape.position(position)
+          shape.width(w)
+          shape.height(h)
+          shape.scale(scale)
+          shape.show()
+          tNode?.nodes([active, shape])
+          tNode?.getLayer()?.batchDraw()
+        }
       }
+    } else {
+      tNode?.nodes([])
+      tNode?.getLayer()?.batchDraw()
+      transformRectRef.current?.hide()
     }
   }, [activeUid, elements])
 
@@ -143,11 +149,7 @@ export default function Player({
   function toggleShapeSelect(e: any) {
     transformRectRef.current?.hide()
     setTimeout(() => {
-      // getIntersection uses layer coords; subtract PAD to account for layer offset
-      const shape = stageRef.current?.getIntersection({
-        x: e.evt.offsetX + PAD,
-        y: e.evt.offsetY + PAD,
-      })
+      const shape = stageRef.current?.getIntersection({ x: e.evt.offsetX, y: e.evt.offsetY })
       const uid = shape?.attrs?.id
       uid && setActiveUid('', uid)
     }, 100)
@@ -161,11 +163,6 @@ export default function Player({
   const syncPosWrapper = useCallback(syncPosToState, [elements, onSyncPos])
   const setActiveWrapper = useCallback(setActiveUid, [onSetActive])
 
-  // Stage is larger than canvas by PAD on each side.
-  // Layer offset shifts coordinate origin so element x/y stays in canvas space.
-  const stageW = width  + PAD * 2
-  const stageH = height + PAD * 2
-
   return (
     <ElementsContext.Provider value={{
       syncPosToState: syncPosWrapper,
@@ -176,49 +173,24 @@ export default function Player({
       setActiveUid: setActiveWrapper,
     }}>
       {/*
-        Outer container keeps original canvas dimensions for layout purposes.
-        overflow: visible — required so the enlarged Stage (which extends PAD px
-        in each direction) is not clipped by this div.
+        overflow: visible — same as nnk-24h-live Player.tsx
+        Allows Konva Stage canvas to render outside this div's bounds
+        (outer CanvasPlayer div uses overflow: hidden to clip content)
       */}
       <div
         ref={containerRef}
         tabIndex={0}
-        style={{
-          width, height,
-          position: 'relative',
-          overflow: 'visible',
-          outline: 'none',
-        }}
+        style={{ width, height, position: 'relative', overflow: 'visible', outline: 'none' }}
       >
-        {/*
-          Stage is positioned PAD px outside the container on all sides.
-          This gives Transformer enough room to draw anchors/border outside
-          the visible canvas area.
-        */}
         <Stage
           ref={stageRef}
-          width={stageW}
-          height={stageH}
-          style={{
-            position: 'absolute',
-            top: -PAD,
-            left: -PAD,
-          }}
+          width={width}
+          height={height}
           onMouseDown={checkDeselect}
         >
-          {/*
-            Layer offset: -PAD so all child elements keep their original
-            canvas-space coordinates unchanged.
-            offsetX/offsetY on Layer shifts the coordinate origin.
-          */}
-          <Layer offsetX={-PAD} offsetY={-PAD}>
-            {/* Canvas background — only fill the real canvas area */}
+          <Layer>
             <Rect width={width} height={height} fill={bgColor} />
-
-            {elements.map(obj => (
-              <RenderElement key={obj.uid} item={obj} />
-            ))}
-
+            {elements.map(obj => <RenderElement key={obj.uid} item={obj} />)}
             <Rect
               visible={false}
               onDblClick={activeEditText}
@@ -226,7 +198,6 @@ export default function Player({
               draggable
               ref={transformRectRef}
             />
-
             <Transformer
               key="shapeTransform"
               id="shapeTransform"
@@ -261,11 +232,24 @@ export default function Player({
                 ) return oldBox
                 return newBox
               }}
+              anchorStyleFunc={(anchor: any) => {
+                if (
+                  anchor.hasName('top-left') || anchor.hasName('top-right') ||
+                  anchor.hasName('bottom-left') || anchor.hasName('bottom-right')
+                ) {
+                  anchor.width(12); anchor.height(12); anchor.cornerRadius(6)
+                }
+                if (anchor.hasName('top-center') || anchor.hasName('bottom-center')) {
+                  anchor.width(16); anchor.height(8); anchor.cornerRadius(4)
+                }
+                if (anchor.hasName('middle-left') || anchor.hasName('middle-right')) {
+                  anchor.width(8); anchor.height(16); anchor.cornerRadius(4)
+                }
+              }}
             />
           </Layer>
         </Stage>
 
-        {/* Empty placeholder */}
         {elements.length === 0 && !spinning && <EmptyPlaceholder isDark={isDark} />}
 
         {focusUid && (
