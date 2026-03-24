@@ -130,7 +130,7 @@ export default function CanvasPlayer({
         style={{
           height: '100%', width: '100%',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
-          overflow: 'hidden', position: 'relative',
+          overflow: 'visible', position: 'relative',
         }}
       >
         {renderSize.width > 0 && (

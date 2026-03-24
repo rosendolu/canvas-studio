@@ -170,7 +170,7 @@ export default function Player({
       <div
         ref={containerRef}
         tabIndex={0}
-        style={{ width, height, position: 'relative', overflow: 'hidden', outline: 'none' }}
+        style={{ width, height, position: 'relative', overflow: 'visible', outline: 'none' }}
         onFocus={() => {}} // keep focusable
       >
         <Stage ref={stageRef} width={width} height={height} onMouseDown={checkDeselect}>
