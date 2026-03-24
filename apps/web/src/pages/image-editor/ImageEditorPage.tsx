@@ -1,16 +1,33 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch, useMantineColorScheme } from '@mantine/core'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useLiveStore } from '../../store/liveStore'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
+import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 
 export function ImageEditorPage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch } = useLiveStore()
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
+
+  // Persist aspect ratio in localStorage via Mantine hook
+  const { aspectRatio: savedRatio, setAspectRatio: saveRatio, ASPECT_RATIO_OPTIONS } = useCanvasConfig()
+
+  // On mount: restore saved ratio into store
+  useEffect(() => {
+    if (savedRatio && savedRatio !== aspectRatio) {
+      dispatch({ type: 'setAspectRatio', payload: savedRatio })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleAspectRatioChange = useCallback((v: string) => {
+    saveRatio(v)
+    dispatch({ type: 'setAspectRatio', payload: v })
+  }, [dispatch, saveRatio])
 
   const page = pages[0]
   const elements = page.elements
@@ -56,12 +73,8 @@ export function ImageEditorPage() {
         <SegmentedControl
           size="xs"
           value={aspectRatio}
-          onChange={v => dispatch({ type: 'setAspectRatio', payload: v })}
-          data={[
-            { label: '16:9', value: '16:9' },
-            { label: '9:16', value: '9:16' },
-            { label: '1:1', value: '1:1' },
-          ]}
+          onChange={handleAspectRatioChange}
+          data={ASPECT_RATIO_OPTIONS}
         />
         <Box style={{ flex: 1 }} />
         <Text size="xs" c="dimmed">{elements.length} 个元素</Text>
