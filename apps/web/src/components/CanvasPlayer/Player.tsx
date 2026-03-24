@@ -1,7 +1,8 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
 import { useMantineColorScheme } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
+import cloneDeep from 'lodash-es/cloneDeep'
 import { ElementsContext, PlayerContext } from './context'
 import { StaticImage } from '../CanvasElements/StaticImage'
 import { BubbleText } from '../CanvasElements/BubbleText'
@@ -23,9 +24,6 @@ interface PlayerProps {
   onDeleteElement?: (uid: string) => void
 }
 
-// Extra space around canvas so Transformer anchors at edges are never clipped
-const UI_PAD = 64
-
 export default function Player({
   width,
   height,
@@ -39,19 +37,18 @@ export default function Player({
   const { spinning } = useContext(PlayerContext)
   const { colorScheme } = useMantineColorScheme()
   const isDark = colorScheme === 'dark'
-
-  const contentStageRef = useRef<any>(null)  // elements stage
-  const uiStageRef      = useRef<any>(null)  // transformer stage
-  const transformRef    = useRef<any>(null)  // Transformer node
-  const mirrorRectRef   = useRef<any>(null)  // invisible mirror Rect in UI stage
-  const containerRef    = useRef<HTMLDivElement>(null)
+  const transformRef = useRef<any>(null)
+  const stageRef = useRef<any>(null)
+  const transformRectRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [focusUid, setFocusUid] = useState('')
 
-  // ── Keyboard: Delete / Backspace ──
+  // ── Keyboard shortcut: Backspace (Mac) / Delete (Win) to remove active element ──
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     function handleKeyDown(e: KeyboardEvent) {
+      // Ignore if user is typing in an input/textarea
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
       if ((e.key === 'Backspace' || e.key === 'Delete') && activeUid) {
@@ -63,109 +60,93 @@ export default function Player({
     return () => el.removeEventListener('keydown', handleKeyDown)
   }, [activeUid, onDeleteElement])
 
-  // ── Sync element position/scale back to store ──
   function syncPosToState(e: any) {
     const target = e.target
-    const id: string = target.attrs.id || mirrorRectRef.current?.attrs?.id || ''
+    const id: string = target.attrs.id || ''
     const [uid, shapeType] = id.split('$$') as [string, string | undefined]
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
 
-    // mirrorRect coordinates are in UI stage space (offset by UI_PAD).
-    // StaticImage uses offsetX/offsetY = w/2, h/2 so node.x() = item.left + w/2.
-    // We compensate: stored left = node.x() - UI_PAD - offsetX
-    const rawX   = target.x()
-    const rawY   = target.y()
-    const scaleX = target.scaleX() || 1
-    const scaleY = target.scaleY() || 1
-    const offsetX = target.offsetX?.() ?? 0
-    const offsetY = target.offsetY?.() ?? 0
-
+    const left = target.x(), top = target.y()
+    const scaleX = target.scaleX(), scaleY = target.scaleY()
     const updates: Partial<CanvasElement> = {}
 
-    if (shapeType === 'group') {
-      // Avatar group — no offsetX/offsetY
-      updates.left = rawX - UI_PAD
-      updates.top  = rawY - UI_PAD
-      if (e.type === 'transformend') { updates.scaleX = scaleX; updates.scaleY = scaleY }
+    if (shapeType === 'mask' && obj.mask) {
+      // Mask circle drag/transform: update mask position & scale
+      const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
+      const newMask = {
+        ...obj.mask,
+        left,
+        top,
+        scaleX: scaleX || 1,
+        scaleY: scaleY || 1,
+        width: radius * 2,
+        height: radius * 2,
+      }
+      updates.mask = newMask
+    } else if (shapeType === 'group') {
+      // Avatar group drag: update left/top directly
+      updates.left = left
+      updates.top = top
+      if (e.type === 'transformend') {
+        updates.scaleX = scaleX || 1
+        updates.scaleY = scaleY || 1
+      }
     } else if (id.endsWith('bubbleText')) {
-      updates.left = rawX - UI_PAD - offsetX
-      updates.top  = rawY - UI_PAD - offsetY
+      updates.left = left; updates.top = top
     } else {
-      // StaticImage: x = left + offsetX  →  left = x - offsetX
-      updates.left   = rawX - UI_PAD - offsetX
-      updates.top    = rawY - UI_PAD - offsetY
-      updates.scaleX = scaleX
-      updates.scaleY = scaleY
+      updates.left = left; updates.top = top
+      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
     }
 
     const rotation = target.rotation() || 0
-    updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    if (!('mask' in updates)) {
+      updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    }
     onSyncPos(uid, updates)
-  }
-
-  // Also handle mask sync from content stage (AvatarElement handles its own Transformer)
-  function syncMaskToState(uid: string, maskUpdates: Partial<CanvasElement['mask'] & {}>) {
-    const obj = elements.find(el => el.uid === uid)
-    if (!obj?.mask) return
-    onSyncPos(uid, { mask: { ...obj.mask, ...maskUpdates } })
   }
 
   function setActiveUid(type = '', uid = '') {
     onSetActive(type, uid)
   }
 
-  // ── Mirror active element's geometry onto mirrorRect, then attach Transformer ──
   useEffect(() => {
     const tNode = transformRef.current
-    const mirror = mirrorRectRef.current
-    if (!tNode || !mirror) return
-
     if (!activeUid) {
-      tNode.nodes([])
-      tNode.getLayer()?.batchDraw()
-      mirror.visible(false)
-      return
+      tNode?.nodes([]); tNode?.getLayer()?.batchDraw(); transformRectRef.current?.hide(); return
     }
-
-    // Look up real element in content stage
-    let realNode = contentStageRef.current?.findOne(`#${activeUid}`)
-    if (!realNode) realNode = contentStageRef.current?.findOne(`#${activeUid}$$group`)
-    if (!realNode) return
-
-    // Copy geometry to mirror rect (UI stage coords = content stage coords + UI_PAD)
-    // getAbsolutePosition() already accounts for offsetX/offsetY, so x() here = item.left + ox
-    const absPos = realNode.getAbsolutePosition()
-    mirror.x(absPos.x + UI_PAD)
-    mirror.y(absPos.y + UI_PAD)
-    mirror.offsetX(realNode.offsetX?.() ?? 0)
-    mirror.offsetY(realNode.offsetY?.() ?? 0)
-    mirror.width(realNode.width())
-    mirror.height(realNode.height())
-    mirror.scaleX(realNode.scaleX())
-    mirror.scaleY(realNode.scaleY())
-    mirror.rotation(realNode.rotation())
-    mirror.id(realNode.attrs.id)
-    mirror.visible(true)
-    mirror.getLayer()?.batchDraw()
-
-    tNode.nodes([mirror])
-    tNode.getLayer()?.batchDraw()
+    let active = stageRef.current?.findOne(`#${activeUid}`)
+    if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
+      active = stageRef.current?.findOne(`#${activeUid}$$group`)
+    }
+    if (active) {
+      const shape = transformRectRef.current
+      if (shape) {
+        shape.position(active.position())
+        shape.width(active.width())
+        shape.height(active.height())
+        shape.scale(active.scale())
+        shape.show()
+        tNode?.nodes([active, shape])
+        tNode?.getLayer()?.batchDraw()
+      }
+    }
   }, [activeUid, elements])
 
-  const checkDeselectContent = (e: any) => {
+  const checkDeselect = (e: any) => {
     if (e.target === e.target.getStage()) {
       setActiveUid('', '')
       setFocusUid('')
     }
   }
 
-  const checkDeselectUI = (e: any) => {
-    // Click on UI stage background (not on transformer/mirror) → deselect
-    if (e.target === e.target.getStage()) {
-      setActiveUid('', '')
-      setFocusUid('')
-    }
+  function toggleShapeSelect(e: any) {
+    transformRectRef.current?.hide()
+    setTimeout(() => {
+      const shape = stageRef.current?.getIntersection({ x: e.evt.offsetX, y: e.evt.offsetY })
+      const uid = shape?.attrs?.id
+      uid && setActiveUid('', uid)
+    }, 100)
   }
 
   function activeEditText() {
@@ -173,11 +154,8 @@ export default function Player({
     if (obj?.type === 'bubbleText') setFocusUid(activeUid)
   }
 
-  const syncPosWrapper  = useCallback(syncPosToState, [elements, onSyncPos])
+  const syncPosWrapper = useCallback(syncPosToState, [elements, onSyncPos])
   const setActiveWrapper = useCallback(setActiveUid, [onSetActive])
-
-  const uiW = width  + UI_PAD * 2
-  const uiH = height + UI_PAD * 2
 
   return (
     <ElementsContext.Provider value={{
@@ -185,148 +163,59 @@ export default function Player({
       activeUid,
       focusUid,
       setFocusUid,
-      stageRef: contentStageRef,
+      stageRef,
       setActiveUid: setActiveWrapper,
     }}>
-      {/*
-        Outer wrapper: overflow visible — allows UI Stage to bleed outside canvas edges.
-        Width/height matches canvas so layout is not disrupted.
-      */}
+      {/* tabIndex makes div focusable for keyboard events */}
       <div
         ref={containerRef}
         tabIndex={0}
-        style={{
-          width, height,
-          position: 'relative',
-          overflow: 'visible',
-          outline: 'none',
-        }}
+        style={{ width, height, position: 'relative', overflow: 'hidden', outline: 'none' }}
+        onFocus={() => {}} // keep focusable
       >
-        {/* ── Content Stage: clips to canvas — elements only ── */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-          <Stage
-            ref={contentStageRef}
-            width={width}
-            height={height}
-            onMouseDown={checkDeselectContent}
-          >
-            <Layer>
-              <Rect width={width} height={height} fill={bgColor} />
-              {elements.map(obj => <RenderElement key={obj.uid} item={obj} />)}
-            </Layer>
-          </Stage>
-        </div>
+        <Stage ref={stageRef} width={width} height={height} onMouseDown={checkDeselect}>
+          <Layer>
+            <Rect width={width} height={height} fill={bgColor} />
+            {elements.map(obj => (
+              <RenderElement key={obj.uid} item={obj} />
+            ))}
+            <Rect
+              visible={false}
+              onDblClick={activeEditText}
+              onClick={toggleShapeSelect}
+              draggable
+              ref={transformRectRef}
+            />
+            <Transformer
+              key="shapeTransform"
+              id="shapeTransform"
+              visible={!!activeUid}
+              ref={transformRef}
+              keepRatio
+              rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+              flipEnabled={false}
+              anchorFill="#fff"
+              anchorStroke="#fff"
+              borderEnabled
+              anchorSize={10}
+              borderStrokeWidth={2}
+              borderStroke="#FF000D"
+              onTransform={(e: any) => {
+                const anchorName = e.currentTarget.getActiveAnchor()
+                if (anchorName === 'top-center' || anchorName === 'bottom-center') e.target.scaleX(e.target.scaleY())
+                else if (anchorName === 'middle-left' || anchorName === 'middle-right') e.target.scaleY(e.target.scaleX())
+              }}
+              rotateEnabled={false}
+              enabledAnchors={['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right']}
+              boundBoxFunc={(oldBox: any, newBox: any) => {
+                if ((oldBox.width < 20 && newBox.width < oldBox.width) || (oldBox.height < 20 && newBox.height < oldBox.height)) return oldBox
+                return newBox
+              }}
+            />
+          </Layer>
+        </Stage>
 
-        {/*
-          ── UI Stage: Transformer + mirror Rect ──
-          Positioned UI_PAD outside canvas on all sides.
-          pointer-events: none on wrapper so content stage receives normal mouse events;
-          Konva handles pointer events internally for Transformer anchors.
-        */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -UI_PAD,
-            left: -UI_PAD,
-            width: uiW,
-            height: uiH,
-            overflow: 'visible',
-            pointerEvents: 'none',
-          }}
-        >
-          <Stage
-            ref={uiStageRef}
-            width={uiW}
-            height={uiH}
-            onMouseDown={checkDeselectUI}
-            onDblClick={activeEditText}
-          >
-            <Layer>
-              {/*
-                Mirror Rect — invisible, sits in UI stage coordinate space.
-                Transformer is attached to this node; drag/transform events come here.
-                Actual element in content stage stays in sync via useEffect above.
-              */}
-              <Rect
-                ref={mirrorRectRef}
-                visible={false}
-                fill="transparent"
-                draggable
-                onDragMove={(e: any) => {
-                  // Live-update the real element position while dragging
-                  // mirror.x() is center-point (has offsetX), so real node x = mirror.x()
-                  const mirror = e.target
-                  const id: string = mirror.attrs.id || ''
-                  const [uid] = id.split('$$')
-                  const realNode = contentStageRef.current?.findOne(`#${uid}`)
-                    || contentStageRef.current?.findOne(`#${uid}$$group`)
-                  if (realNode) {
-                    // mirror and realNode share same offsetX/offsetY, so x maps directly
-                    realNode.x(mirror.x() - UI_PAD)
-                    realNode.y(mirror.y() - UI_PAD)
-                    realNode.getLayer()?.batchDraw()
-                  }
-                }}
-                onDragEnd={syncPosWrapper}
-                onTransform={(e: any) => {
-                  // Live-update scale/rotation while transforming
-                  const mirror = e.target
-                  const id: string = mirror.attrs.id || ''
-                  const [uid] = id.split('$$')
-                  const realNode = contentStageRef.current?.findOne(`#${uid}`)
-                    || contentStageRef.current?.findOne(`#${uid}$$group`)
-                  if (realNode) {
-                    realNode.x(mirror.x() - UI_PAD)
-                    realNode.y(mirror.y() - UI_PAD)
-                    realNode.scaleX(mirror.scaleX())
-                    realNode.scaleY(mirror.scaleY())
-                    realNode.rotation(mirror.rotation())
-                    realNode.getLayer()?.batchDraw()
-                  }
-                }}
-                onTransformEnd={syncPosWrapper}
-              />
-
-              <Transformer
-                key="shapeTransform"
-                id="shapeTransform"
-                visible={!!activeUid}
-                ref={transformRef}
-                keepRatio
-                rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
-                flipEnabled={false}
-                anchorFill="#fff"
-                anchorStroke="#fff"
-                borderEnabled
-                anchorSize={10}
-                borderStrokeWidth={2}
-                borderStroke="#FF000D"
-                onTransform={(e: any) => {
-                  const anchorName = e.currentTarget.getActiveAnchor()
-                  if (anchorName === 'top-center' || anchorName === 'bottom-center')
-                    e.target.scaleX(e.target.scaleY())
-                  else if (anchorName === 'middle-left' || anchorName === 'middle-right')
-                    e.target.scaleY(e.target.scaleX())
-                }}
-                rotateEnabled={false}
-                enabledAnchors={[
-                  'top-left', 'top-center', 'top-right',
-                  'middle-left', 'middle-right',
-                  'bottom-left', 'bottom-center', 'bottom-right',
-                ]}
-                boundBoxFunc={(oldBox: any, newBox: any) => {
-                  if (
-                    (oldBox.width < 20 && newBox.width < oldBox.width) ||
-                    (oldBox.height < 20 && newBox.height < oldBox.height)
-                  ) return oldBox
-                  return newBox
-                }}
-              />
-            </Layer>
-          </Stage>
-        </div>
-
-        {/* Empty placeholder */}
+        {/* Empty placeholder — pure div, theme-aware, no canvas drawing */}
         {elements.length === 0 && !spinning && <EmptyPlaceholder isDark={isDark} />}
 
         {focusUid && (
@@ -352,6 +241,7 @@ function RenderElement({ item }: { item: CanvasElement }) {
   return <Text fill="red" text="未知元素类型" />
 }
 
+/** Theme-aware empty placeholder — pure div, positioned absolutely */
 function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
   const { t } = useTranslation()
   const iconColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)'
