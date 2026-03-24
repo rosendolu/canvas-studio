@@ -12,6 +12,9 @@ export function useCanvasConfig() {
   const [aspectRatio, setAspectRatio] = useLocalStorage<string>({
     key: 'canvas-studio:aspectRatio',
     defaultValue: '9:16',
+    // Read immediately on first render (not deferred to effect)
+    // so the value is available synchronously on mount
+    getInitialValueInEffect: false,
   })
 
   return { aspectRatio, setAspectRatio, ASPECT_RATIO_OPTIONS }
