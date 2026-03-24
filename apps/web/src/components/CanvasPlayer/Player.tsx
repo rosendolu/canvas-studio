@@ -62,28 +62,47 @@ export default function Player({
 
   function syncPosToState(e: any) {
     const target = e.target
-    const [left, top] = [target.x(), target.y()]
-    const [scaleX, scaleY] = [target.scaleX(), target.scaleY()]
-    const [uid, shapeType] = (target.attrs.id?.split('$$') || []) as string[]
+    const id: string = target.attrs.id || ''
+    const [uid, shapeType] = id.split('$$') as [string, string | undefined]
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
+
+    const left = target.x(), top = target.y()
+    const scaleX = target.scaleX(), scaleY = target.scaleY()
     const updates: Partial<CanvasElement> = {}
+
     if (shapeType === 'mask' && obj.mask) {
-      obj.mask.left = left; obj.mask.top = top
-      obj.mask.scaleX = scaleX || 1; obj.mask.scaleY = scaleY || 1
-    } else if (shapeType === 'group') {
-      if (String(target?.attrs?.name || '').endsWith('bubbleText')) {
-        updates.left = left; updates.top = top
-      } else {
-        updates.offsetX = left || 0; updates.offsetY = top || 0
+      // Mask circle drag/transform: update mask position & scale
+      const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
+      const newMask = {
+        ...obj.mask,
+        left,
+        top,
+        scaleX: scaleX || 1,
+        scaleY: scaleY || 1,
+        width: radius * 2,
+        height: radius * 2,
       }
-      if (e.type === 'transformend') { updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1 }
+      updates.mask = newMask
+    } else if (shapeType === 'group') {
+      // Avatar group drag: update left/top directly
+      updates.left = left
+      updates.top = top
+      if (e.type === 'transformend') {
+        updates.scaleX = scaleX || 1
+        updates.scaleY = scaleY || 1
+      }
+    } else if (id.endsWith('bubbleText')) {
+      updates.left = left; updates.top = top
     } else {
       updates.left = left; updates.top = top
       updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
     }
+
     const rotation = target.rotation() || 0
-    updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    if (!('mask' in updates)) {
+      updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    }
     onSyncPos(uid, updates)
   }
 

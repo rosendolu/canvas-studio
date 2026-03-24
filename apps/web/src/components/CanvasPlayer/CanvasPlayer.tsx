@@ -35,8 +35,8 @@ function checkerboardBg(isDark: boolean): React.CSSProperties {
       linear-gradient(45deg, transparent 75%, ${dark} 75%),
       linear-gradient(-45deg, transparent 75%, ${dark} 75%)
     `,
-    backgroundSize: '32px 32px',
-    backgroundPosition: '0 0, 0 16px, 16px -16px, -16px 0px',
+    backgroundSize: '16px 16px',
+    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
     backgroundColor: light,
   }
 }
