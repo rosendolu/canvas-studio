@@ -1,0 +1,79 @@
+Canvas Studio Commercial License
+Copyright (c) 2024 rosendolu. All rights reserved.
+
+────────────────────────────────────────────────────────────────────────────────
+TERMS AND CONDITIONS
+────────────────────────────────────────────────────────────────────────────────
+
+1. DEFINITIONS
+
+   "Software" refers to Canvas Studio, including all source code, documentation,
+   assets, and related materials in this repository.
+
+   "Personal Use" means use by an individual for non-commercial, non-revenue-
+   generating purposes only.
+
+   "Commercial Use" means any use of the Software — directly or indirectly — in
+   connection with a business, product, service, or activity that generates
+   revenue or commercial advantage.
+
+2. GRANT OF LICENSE — PERSONAL USE (FREE)
+
+   Permission is hereby granted, free of charge, to any individual obtaining a
+   copy of this Software, to use, copy, and modify the Software solely for
+   personal, non-commercial purposes, subject to the following conditions:
+
+   a. This license notice and copyright notice shall be included in all copies
+      or substantial portions of the Software.
+
+   b. Redistribution of the Software, in whole or in part, is not permitted
+      without prior written consent from the copyright holder.
+
+3. COMMERCIAL USE — PAID LICENSE REQUIRED
+
+   Any Commercial Use of the Software requires a separate, paid commercial
+   license obtained from the copyright holder. This includes, but is not limited
+   to:
+
+   a. Using the Software in a SaaS product, web application, or platform
+      accessible to end users.
+
+   b. Integrating the Software into a product or service that is sold or
+      monetized.
+
+   c. Using the Software within an organization or enterprise environment.
+
+   d. Deploying the Software in a production environment for business purposes.
+
+   To obtain a commercial license, contact the copyright holder via GitHub:
+   https://github.com/rosendolu
+
+4. RESTRICTIONS
+
+   You may NOT:
+
+   a. Sublicense, sell, rent, or transfer the Software or any rights granted
+      herein without a commercial license.
+
+   b. Remove or alter any copyright, trademark, or proprietary notices in the
+      Software.
+
+   c. Use the Software to build a competing product or service without a
+      commercial license.
+
+5. DISCLAIMER OF WARRANTIES
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+6. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
+
+────────────────────────────────────────────────────────────────────────────────
+For licensing inquiries: https://github.com/rosendolu/canvas-studio
+────────────────────────────────────────────────────────────────────────────────
