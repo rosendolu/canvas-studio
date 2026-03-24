@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch } from '@mantine/core'
+import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch, useMantineColorScheme } from '@mantine/core'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useLiveStore } from '../../store/liveStore'
@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next'
 export function ImageEditorPage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch } = useLiveStore()
   const { t } = useTranslation()
+  const { colorScheme } = useMantineColorScheme()
+  const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
 
   const page = pages[0]
   const elements = page.elements
@@ -85,7 +87,7 @@ export function ImageEditorPage() {
         </Box>
 
         {/* Center: Canvas */}
-        <Box style={{ flex: 1, minWidth: 0, background: '#2c2c2c', position: 'relative' }}>
+        <Box style={{ flex: 1, minWidth: 0, background: stageBg, position: 'relative' }}>
           <CanvasPlayer
             elements={elements}
             activeUid={activeUid}

@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch } from '@mantine/core'
+import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, useMantineColorScheme } from '@mantine/core'
 import { IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import TimelineRuler from '../../components/Timeline/TimelineRuler'
@@ -15,6 +15,8 @@ export function EditorPage() {
     dispatch,
   } = useEditorStore()
   const { t } = useTranslation()
+  const { colorScheme } = useMantineColorScheme()
+  const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
 
   const elements = track
     .flatMap(t => t.lineList.map(el => ({ ...el, muted: t.muted, volume: t.volume })))
@@ -68,8 +70,8 @@ export function EditorPage() {
           />
         </Box>
 
-        {/* Center: Canvas — neutral dark stage bg regardless of theme */}
-        <Box style={{ flex: 1, minWidth: 0, background: '#2c2c2c', position: 'relative' }}>
+        {/* Center: Canvas stage — adapts to theme */}
+        <Box style={{ flex: 1, minWidth: 0, background: stageBg, position: 'relative' }}>
           <CanvasPlayer
             elements={elements as CanvasElement[]}
             activeUid={chooseDataUid}
