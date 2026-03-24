@@ -65,29 +65,38 @@ export default function Player({
 
   // ── Sync element position/scale back to store ──
   function syncPosToState(e: any) {
-    // When drag/transform fires on mirrorRect in UI Stage,
-    // read position from mirrorRect, convert coords (subtract UI_PAD offset)
     const target = e.target
     const id: string = target.attrs.id || mirrorRectRef.current?.attrs?.id || ''
     const [uid, shapeType] = id.split('$$') as [string, string | undefined]
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
 
-    // mirrorRect coordinates are in UI stage space (offset by UI_PAD)
-    const left   = target.x() - UI_PAD
-    const top    = target.y() - UI_PAD
-    const scaleX = target.scaleX()
-    const scaleY = target.scaleY()
+    // mirrorRect coordinates are in UI stage space (offset by UI_PAD).
+    // StaticImage uses offsetX/offsetY = w/2, h/2 so node.x() = item.left + w/2.
+    // We compensate: stored left = node.x() - UI_PAD - offsetX
+    const rawX   = target.x()
+    const rawY   = target.y()
+    const scaleX = target.scaleX() || 1
+    const scaleY = target.scaleY() || 1
+    const offsetX = target.offsetX?.() ?? 0
+    const offsetY = target.offsetY?.() ?? 0
+
     const updates: Partial<CanvasElement> = {}
 
     if (shapeType === 'group') {
-      updates.left = left; updates.top = top
-      if (e.type === 'transformend') { updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1 }
+      // Avatar group — no offsetX/offsetY
+      updates.left = rawX - UI_PAD
+      updates.top  = rawY - UI_PAD
+      if (e.type === 'transformend') { updates.scaleX = scaleX; updates.scaleY = scaleY }
     } else if (id.endsWith('bubbleText')) {
-      updates.left = left; updates.top = top
+      updates.left = rawX - UI_PAD - offsetX
+      updates.top  = rawY - UI_PAD - offsetY
     } else {
-      updates.left = left; updates.top = top
-      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
+      // StaticImage: x = left + offsetX  →  left = x - offsetX
+      updates.left   = rawX - UI_PAD - offsetX
+      updates.top    = rawY - UI_PAD - offsetY
+      updates.scaleX = scaleX
+      updates.scaleY = scaleY
     }
 
     const rotation = target.rotation() || 0
@@ -124,10 +133,13 @@ export default function Player({
     if (!realNode) realNode = contentStageRef.current?.findOne(`#${activeUid}$$group`)
     if (!realNode) return
 
-    // Copy geometry to mirror rect (add UI_PAD to convert to UI stage coords)
+    // Copy geometry to mirror rect (UI stage coords = content stage coords + UI_PAD)
+    // getAbsolutePosition() already accounts for offsetX/offsetY, so x() here = item.left + ox
     const absPos = realNode.getAbsolutePosition()
     mirror.x(absPos.x + UI_PAD)
     mirror.y(absPos.y + UI_PAD)
+    mirror.offsetX(realNode.offsetX?.() ?? 0)
+    mirror.offsetY(realNode.offsetY?.() ?? 0)
     mirror.width(realNode.width())
     mirror.height(realNode.height())
     mirror.scaleX(realNode.scaleX())
@@ -242,12 +254,14 @@ export default function Player({
                 draggable
                 onDragMove={(e: any) => {
                   // Live-update the real element position while dragging
+                  // mirror.x() is center-point (has offsetX), so real node x = mirror.x()
                   const mirror = e.target
                   const id: string = mirror.attrs.id || ''
                   const [uid] = id.split('$$')
                   const realNode = contentStageRef.current?.findOne(`#${uid}`)
                     || contentStageRef.current?.findOne(`#${uid}$$group`)
                   if (realNode) {
+                    // mirror and realNode share same offsetX/offsetY, so x maps directly
                     realNode.x(mirror.x() - UI_PAD)
                     realNode.y(mirror.y() - UI_PAD)
                     realNode.getLayer()?.batchDraw()
