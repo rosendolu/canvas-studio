@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded rect -->
+  <rect width="64" height="64" rx="12" fill="url(#g)"/>
+  <!-- Canvas frame -->
+  <rect x="10" y="12" width="44" height="30" rx="3" fill="none" stroke="white" stroke-width="2.5"/>
+  <!-- Play triangle -->
+  <polygon points="26,19 26,35 42,27" fill="white" opacity="0.9"/>
+  <!-- Timeline bar bg -->
+  <rect x="10" y="48" width="44" height="5" rx="2.5" fill="white" opacity="0.25"/>
+  <!-- Timeline progress -->
+  <rect x="10" y="48" width="22" height="5" rx="2.5" fill="white" opacity="0.85"/>
+  <!-- Playhead -->
+  <rect x="30" y="45" width="3" height="11" rx="1.5" fill="white"/>
+</svg>

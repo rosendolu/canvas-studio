@@ -1,24 +1,21 @@
 import { useCallback } from 'react'
-import { Box, Group, ActionIcon, Tooltip, SegmentedControl } from '@mantine/core'
+import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Stack, NumberInput, ColorInput, Button, Divider, Switch, ScrollArea, SimpleGrid, Image } from '@mantine/core'
 import { IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import TimelineRuler from '../../components/Timeline/TimelineRuler'
 import { useEditorStore } from '../../store/editorStore'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
+import { useTranslation } from 'react-i18next'
+import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 
-/**
- * 视频编辑器页面
- * 上方: Canvas 预览区
- * 下方: 时间轴 + 轨道
- */
 export function EditorPage() {
   const {
     track, drawWidth, drawHeight, aspectRatio,
     currentFrame, fps, trackScale, chooseDataUid, color,
     dispatch,
   } = useEditorStore()
+  const { t } = useTranslation()
 
-  // Flatten all elements from track for canvas rendering
   const elements = track
     .flatMap(t => t.lineList.map(el => ({ ...el, muted: t.muted, volume: t.volume })))
     .filter((el: any) => el.start == null || (el.start <= currentFrame && currentFrame < (el.end ?? Infinity)))
@@ -47,47 +44,62 @@ export function EditorPage() {
     if (w && h) dispatch({ type: 'setCanvasSize', payload: { drawWidth: w, drawHeight: h } })
   }, [dispatch, track])
 
-  const timelineUserConfig = {
-    start: 0,
-    step: fps,
-    scale: trackScale,
-  }
+  const handleAddElement = useCallback((el: Omit<CanvasElement, 'uid'>) => {
+    dispatch({ type: 'addTrackElement', payload: { element: el as CanvasElement } })
+  }, [dispatch])
+
+  const timelineUserConfig = { start: 0, step: fps, scale: trackScale }
 
   return (
     <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Canvas Area */}
-      <Box style={{ flex: 1, minHeight: 0, background: '#1a1a1a', position: 'relative' }}>
-        <CanvasPlayer
-          elements={elements as CanvasElement[]}
-          activeUid={chooseDataUid}
-          bgColor={color}
-          aspectRatio={aspectRatio}
-          drawWidth={drawWidth}
-          drawHeight={drawHeight}
-          onSyncPos={handleSyncPos}
-          onSetActive={handleSetActive}
-          onSetCanvasSize={handleSetCanvasSize}
-          onUpdateElements={handleUpdateElements}
-        />
+      {/* Main area: left panel + canvas */}
+      <Box style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        {/* Left: Assets Panel */}
+        <Box style={{ width: 230, borderRight: '1px solid var(--mantine-color-dark-4)', background: 'var(--mantine-color-dark-8)', overflowY: 'auto' }}>
+          <ElementMenu
+            onAddElement={handleAddElement}
+            bgColor={color}
+            onBgColorChange={c => dispatch({ type: 'setBgColor', payload: c })}
+          />
+        </Box>
+
+        {/* Center: Canvas */}
+        <Box style={{ flex: 1, minWidth: 0, background: '#1a1a1a', position: 'relative' }}>
+          <CanvasPlayer
+            elements={elements as CanvasElement[]}
+            activeUid={chooseDataUid}
+            bgColor={color}
+            aspectRatio={aspectRatio}
+            drawWidth={drawWidth}
+            drawHeight={drawHeight}
+            onSyncPos={handleSyncPos}
+            onSetActive={handleSetActive}
+            onSetCanvasSize={handleSetCanvasSize}
+            onUpdateElements={handleUpdateElements}
+          />
+        </Box>
       </Box>
 
       {/* Timeline */}
-      <Box style={{ height: 180, borderTop: '1px solid #333', background: '#1e1e1e' }}>
-        {/* Controls */}
+      <Box style={{ height: 180, borderTop: '1px solid #333', background: '#1e1e1e', flexShrink: 0 }}>
         <Group p="xs" gap="xs" style={{ borderBottom: '1px solid #333' }}>
-          <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setCurrentFrame', payload: currentFrame > 0 ? currentFrame - 1 : 0 })}>
-            <IconPlayerStop size={14} />
-          </ActionIcon>
-          <ActionIcon variant="subtle" size="sm">
-            <IconPlayerPlay size={14} />
-          </ActionIcon>
+          <Tooltip label={t('editor.stop')}>
+            <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setCurrentFrame', payload: 0 })}>
+              <IconPlayerStop size={14} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label={t('editor.play')}>
+            <ActionIcon variant="subtle" size="sm">
+              <IconPlayerPlay size={14} />
+            </ActionIcon>
+          </Tooltip>
           <Box style={{ flex: 1 }} />
-          <Tooltip label="缩小时间轴">
+          <Tooltip label={t('editor.zoomOut')}>
             <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setTrackScale', payload: Math.max(0, trackScale - 10) })}>
               <IconZoomOut size={14} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="放大时间轴">
+          <Tooltip label={t('editor.zoomIn')}>
             <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setTrackScale', payload: Math.min(100, trackScale + 10) })}>
               <IconZoomIn size={14} />
             </ActionIcon>
@@ -104,7 +116,6 @@ export function EditorPage() {
           />
         </Group>
 
-        {/* Ruler */}
         <TimelineRuler
           userConfig={timelineUserConfig}
           track={track}
@@ -113,13 +124,12 @@ export function EditorPage() {
           onFrameChange={f => dispatch({ type: 'setCurrentFrame', payload: f })}
         />
 
-        {/* Track list placeholder */}
         <Box p="xs" style={{ color: '#666', fontSize: 12 }}>
           {track.length === 0
-            ? '暂无轨道，请在左侧面板添加元素'
+            ? t('editor.noTrack')
             : track.map(t => (
-                <Box key={t.uid} style={{ height: 28, lineHeight: '28px', borderBottom: '1px solid #2a2a2a' }}>
-                  {t.type} ({t.lineList.length} 个元素)
+                <Box key={t.uid} style={{ height: 24, lineHeight: '24px', borderBottom: '1px solid #2a2a2a' }}>
+                  {t.type} ({t.lineList.length})
                 </Box>
               ))
           }
