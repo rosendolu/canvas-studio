@@ -203,10 +203,15 @@ function RenderElement({ item }: { item: CanvasElement }) {
 
 function EmptyPlaceholder() {
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }}>
+    <div style={{
+      position: 'absolute', inset: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'rgba(128,128,128,0.6)',
+      pointerEvents: 'none',
+    }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 64 }}>🎬</div>
-        <div style={{ marginTop: 8, fontSize: 14 }}>点击左侧添加元素</div>
+        <div style={{ fontSize: 52, opacity: 0.5 }}>🎬</div>
+        <div style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>点击左侧添加元素</div>
       </div>
     </div>
   )

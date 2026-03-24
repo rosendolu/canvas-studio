@@ -40,7 +40,7 @@ export const DEFAULT_STICKERS = [
   },
   {
     label: 'Flower',
-    src: 'https://images.unsplash.com/photo-1490750967868-88df5691cc01?w=300&h=300&fit=crop',
+    src: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop',
     originalWidth: 300, originalHeight: 300,
   },
 ]
