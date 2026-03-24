@@ -60,6 +60,9 @@ const en = {
       addMask: 'Add Masked Image',
       defaultAssets: 'Default Assets',
     },
+    canvas: {
+      emptyHint: 'Add assets from the left panel',
+    },
   },
 }
 

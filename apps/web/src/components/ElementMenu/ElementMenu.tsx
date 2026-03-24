@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Stack, Tabs, Text, Box, Button, ColorInput, Divider, TextInput, ScrollArea, Image, SimpleGrid, Tooltip } from '@mantine/core'
+import { Stack, Tabs, Text, Box, Button, ColorInput, Divider, TextInput, Image, Tooltip } from '@mantine/core'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import {
@@ -29,6 +29,50 @@ function makeEl(overrides: Partial<CanvasElement>): Omit<CanvasElement, 'uid'> {
     visible: true,
     ...overrides,
   }
+}
+
+/** Horizontal scrollable strip of asset thumbnails */
+function AssetStrip({ items, accentColor, onAdd }: {
+  items: { src: string; label: string; originalWidth?: number; originalHeight?: number }[]
+  accentColor: string
+  onAdd: (item: typeof items[number]) => void
+}) {
+  return (
+    <Box
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 6,
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        paddingBottom: 4,
+        scrollbarWidth: 'thin',
+        flexWrap: 'nowrap',
+      }}
+    >
+      {items.map(item => (
+        <Tooltip key={item.label} label={item.label} position="top" withArrow>
+          <Box
+            style={{
+              flexShrink: 0,
+              width: 72,
+              height: 52,
+              cursor: 'pointer',
+              borderRadius: 6,
+              overflow: 'hidden',
+              border: '2px solid transparent',
+              transition: 'border-color .15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = accentColor)}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
+            onClick={() => onAdd(item)}
+          >
+            <Image src={item.src} w={72} h={52} fit="cover" />
+          </Box>
+        </Tooltip>
+      ))}
+    </Box>
+  )
 }
 
 export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementMenuProps) {
@@ -116,20 +160,11 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
           <Stack gap="sm">
             <ColorInput size="xs" label={t('elements.bgColor')} value={bgColor} onChange={onBgColorChange} format="hex" />
             <Divider label={t('elements.defaultAssets')} labelPosition="center" />
-            <SimpleGrid cols={2} spacing="xs">
-              {DEFAULT_BACKGROUNDS.map(bg => (
-                <Tooltip key={bg.label} label={bg.label} position="top">
-                  <Box
-                    style={{ cursor: 'pointer', borderRadius: 6, overflow: 'hidden', border: '2px solid transparent', transition: 'border-color .15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--mantine-color-violet-5)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
-                    onClick={() => addBackground(bg.src, bg.originalWidth, bg.originalHeight)}
-                  >
-                    <Image src={bg.src} h={52} fit="cover" />
-                  </Box>
-                </Tooltip>
-              ))}
-            </SimpleGrid>
+            <AssetStrip
+              items={DEFAULT_BACKGROUNDS}
+              accentColor="var(--mantine-color-violet-5)"
+              onAdd={bg => addBackground(bg.src, bg.originalWidth, bg.originalHeight)}
+            />
             <Divider label={t('elements.imgVideoBg')} labelPosition="center" />
             <TextInput size="xs" label={t('elements.imageUrl')} placeholder="https://..." value={imgUrl} onChange={e => setImgUrl(e.target.value)} />
             <Button size="xs" onClick={() => addBackground()} disabled={!imgUrl.trim()}>{t('elements.addBgImage')}</Button>
@@ -140,24 +175,15 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
         <Tabs.Panel value="elements" style={{ flex: 1, overflowY: 'auto' }} p="sm">
           <Stack gap="sm">
             <Text size="xs" c="dimmed" fw={500}>{t('elements.stickers')}</Text>
-            <SimpleGrid cols={2} spacing="xs">
-              {DEFAULT_STICKERS.map(s => (
-                <Tooltip key={s.label} label={s.label} position="top">
-                  <Box
-                    style={{ cursor: 'pointer', borderRadius: 6, overflow: 'hidden', border: '2px solid transparent', transition: 'border-color .15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--mantine-color-cyan-5)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
-                    onClick={() => addSticker(s.src, s.originalWidth, s.originalHeight)}
-                  >
-                    <Image src={s.src} h={52} fit="cover" />
-                  </Box>
-                </Tooltip>
-              ))}
-            </SimpleGrid>
+            <AssetStrip
+              items={DEFAULT_STICKERS}
+              accentColor="var(--mantine-color-cyan-5)"
+              onAdd={s => addSticker(s.src, s.originalWidth, s.originalHeight)}
+            />
             <TextInput size="xs" label={t('elements.imageUrl')} placeholder="https://..." value={stickerUrl} onChange={e => setStickerUrl(e.target.value)} />
             <Button size="xs" onClick={() => addSticker()} disabled={!stickerUrl.trim()}>{t('elements.addSticker')}</Button>
 
-            <Divider label="幻灯片 / Slideshow" labelPosition="center" />
+            <Divider label="Slideshow" labelPosition="center" />
             {DEFAULT_CAROUSEL_SETS.map(set => (
               <Button key={set.label} size="xs" variant="light" onClick={() => addCarousel(set.images)}>
                 🎴 {set.label}
@@ -170,24 +196,11 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
         <Tabs.Panel value="mask" style={{ flex: 1, overflowY: 'auto' }} p="sm">
           <Stack gap="sm">
             <Text size="xs" c="dimmed">{t('elements.mask')}</Text>
-            <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>
-              💡 圆形蒙版裁切，适合人像/头像融图合成
-            </Text>
-            <SimpleGrid cols={2} spacing="xs">
-              {DEFAULT_MASKS.map(m => (
-                <Tooltip key={m.label} label={m.label} position="top">
-                  <Box
-                    style={{ cursor: 'pointer', borderRadius: 6, overflow: 'hidden', border: '2px solid transparent', transition: 'border-color .15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--mantine-color-teal-5)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
-                    onClick={() => addMask(m.src, m.originalWidth, m.originalHeight)}
-                  >
-                    <Image src={m.src} h={60} fit="cover" />
-                    <Text size={10} ta="center" py={2} c="dimmed">{m.label}</Text>
-                  </Box>
-                </Tooltip>
-              ))}
-            </SimpleGrid>
+            <AssetStrip
+              items={DEFAULT_MASKS}
+              accentColor="var(--mantine-color-teal-5)"
+              onAdd={m => addMask(m.src, m.originalWidth, m.originalHeight)}
+            />
             <Divider labelPosition="center" />
             <TextInput size="xs" label={t('elements.maskUrl')} placeholder="https://..." value={maskUrl} onChange={e => setMaskUrl(e.target.value)} />
             <Button size="xs" onClick={() => addMask()} disabled={!maskUrl.trim()}>{t('elements.addMask')}</Button>
@@ -198,19 +211,25 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
         <Tabs.Panel value="text" style={{ flex: 1, overflowY: 'auto' }} p="sm">
           <Stack gap="sm">
             <Text size="xs" c="dimmed">{t('elements.bubbleText')}</Text>
-            <SimpleGrid cols={2} spacing="xs">
+            {/* Bubble text presets — horizontal scroll */}
+            <Box
+              style={{
+                display: 'flex', gap: 6, overflowX: 'auto', overflowY: 'hidden',
+                flexWrap: 'nowrap', paddingBottom: 4, scrollbarWidth: 'thin',
+              }}
+            >
               {DEFAULT_BUBBLE_TEXTS.map((b, i) => (
                 <Button
                   key={i}
                   size="xs"
                   variant="light"
-                  style={{ color: b.color !== '#ffffff' ? b.color : undefined }}
+                  style={{ flexShrink: 0, color: b.color !== '#ffffff' ? b.color : undefined }}
                   onClick={() => addBubbleText(b)}
                 >
                   {b.text}
                 </Button>
               ))}
-            </SimpleGrid>
+            </Box>
             <Divider labelPosition="center" />
             <TextInput size="xs" label={t('elements.bubbleContent')} value={bubbleText} onChange={e => setBubbleText(e.target.value)} />
             <TextInput size="xs" label={t('elements.bubbleBgUrl')} placeholder="https://..." value={bubbleSrc} onChange={e => setBubbleSrc(e.target.value)} />

@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
 import { useMantineColorScheme } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import cloneDeep from 'lodash-es/cloneDeep'
 import { ElementsContext, PlayerContext } from './context'
 import { StaticImage } from '../CanvasElements/StaticImage'
@@ -223,6 +224,7 @@ function RenderElement({ item }: { item: CanvasElement }) {
 
 /** Theme-aware empty placeholder — pure div, positioned absolutely */
 function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
+  const { t } = useTranslation()
   const iconColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)'
   const textColor = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
   return (
@@ -230,6 +232,7 @@ function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
       style={{
         position: 'absolute',
         inset: 0,
+        zIndex: 9,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -241,7 +244,7 @@ function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
     >
       <div style={{ fontSize: 48, lineHeight: 1, color: iconColor }}>🎨</div>
       <div style={{ fontSize: 13, color: textColor, letterSpacing: 0.3 }}>
-        从左侧面板添加素材
+        {t('canvas.emptyHint')}
       </div>
     </div>
   )

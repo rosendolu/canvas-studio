@@ -6,37 +6,57 @@ import type { CanvasElement } from '../types'
 // ================================================================
 
 /**
- * 初始化元素位置，默认居中，背景铺满
+ * 初始化元素位置，默认居中
+ * - background: cover 模式铺满画布
+ * - 其他元素: contain 模式居中，不超过画布
  */
 export function initElementPos(el: CanvasElement, pos: { width: number; height: number }) {
   const { width: canvasWidth, height: canvasHeight } = pos
   const ratio = el.originalWidth / el.originalHeight
-  const scale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
-  const maxScale = Math.max(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
-
-  el.height = Math.min(scale * el.originalHeight, el.originalHeight)
-  el.width = ratio * el.height
 
   if (/background/.test(el.type)) {
+    // cover: 铺满，可能超出画布
+    const maxScale = Math.max(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
     el.width = el.originalWidth * maxScale
     el.height = el.width / ratio
   } else if (el.type === 'sticker') {
-    el.width = Math.min(el.width, 150)
+    // contain in canvas, max width 40% of canvas
+    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
+    el.width = Math.min(el.originalWidth * containScale, canvasWidth * 0.4)
     el.height = el.width / ratio
   } else if (el.type === 'bubbleText') {
-    el.width = Math.min(el.width, 150)
+    el.width = Math.min(el.originalWidth, canvasWidth * 0.4)
     el.height = el.width / ratio
     el.height = Math.max(el.height, 50)
     el.width = el.height * ratio
+  } else if (el.type === 'avatar') {
+    // contain: fit inside canvas
+    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
+    el.width = el.originalWidth * containScale * 0.5
+    el.height = el.width / ratio
+  } else {
+    // generic: contain
+    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
+    el.width = el.originalWidth * containScale
+    el.height = el.width / ratio
   }
 
   el.scaleX = 1
   el.scaleY = 1
+  // Center horizontally, center vertically (avatar bottom-aligned)
   el.left = (canvasWidth - el.width) / 2
-  el.top =
-    el.type === 'avatar'
-      ? canvasHeight - el.height
-      : (canvasHeight - el.height) / 2
+  el.top = el.type === 'avatar'
+    ? canvasHeight - el.height
+    : (canvasHeight - el.height) / 2
+
+  // Set offsetX/offsetY to center so Konva scales from center
+  el.offsetX = el.width / 2
+  el.offsetY = el.height / 2
+  // Adjust left/top to compensate for offset (Konva: x = left + offsetX)
+  el.left = el.left + el.offsetX
+  el.top = (el.type === 'avatar'
+    ? canvasHeight - el.height
+    : (canvasHeight - el.height) / 2) + el.offsetY
 }
 
 /**

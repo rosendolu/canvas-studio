@@ -60,6 +60,9 @@ const zh = {
       addMask: '添加蒙版图片',
       defaultAssets: '默认素材',
     },
+    canvas: {
+      emptyHint: '从左侧面板添加素材',
+    },
   },
 }
 
