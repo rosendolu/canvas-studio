@@ -65,12 +65,7 @@ export default function Player({
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
 
-    // For nodes with offsetX/offsetY (StaticImage), node.x() = item.left + offsetX
-    // So: item.left = node.x() - offsetX
-    const offsetX = target.offsetX?.() ?? 0
-    const offsetY = target.offsetY?.() ?? 0
-    const left = target.x() - offsetX
-    const top  = target.y() - offsetY
+    const left = target.x(), top = target.y()
     const scaleX = target.scaleX(), scaleY = target.scaleY()
     const updates: Partial<CanvasElement> = {}
 
@@ -78,14 +73,13 @@ export default function Player({
       const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
       updates.mask = {
         ...obj.mask,
-        left: target.x(), top: target.y(),   // mask circle: no offset
+        left, top,
         scaleX: scaleX || 1, scaleY: scaleY || 1,
         width: radius * 2, height: radius * 2,
       }
     } else if (shapeType === 'group') {
-      // Avatar group has no offsetX/offsetY
-      updates.left = target.x()
-      updates.top  = target.y()
+      updates.left = left
+      updates.top = top
       if (e.type === 'transformend') {
         updates.scaleX = scaleX || 1
         updates.scaleY = scaleY || 1
@@ -93,11 +87,8 @@ export default function Player({
     } else if (id.endsWith('bubbleText')) {
       updates.left = left; updates.top = top
     } else {
-      // StaticImage: compensate for offsetX/offsetY
-      updates.left   = left
-      updates.top    = top
-      updates.scaleX = scaleX || 1
-      updates.scaleY = scaleY || 1
+      updates.left = left; updates.top = top
+      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
     }
 
     const rotation = target.rotation() || 0
@@ -130,13 +121,9 @@ export default function Player({
         const w = active.width()
         const h = active.height()
         const scale = active.scale()
-        // active.position() returns the node's x/y which includes offsetX/offsetY
-        // For transformRectRef we need the visual top-left position
-        const ox = active.offsetX?.() ?? 0
-        const oy = active.offsetY?.() ?? 0
-        const pos = active.position()
+        const position = active.position()
         if (w) {
-          shape.position({ x: pos.x - ox, y: pos.y - oy })
+          shape.position(position)
           shape.width(w)
           shape.height(h)
           shape.scale(scale)
