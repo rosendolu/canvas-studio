@@ -1,8 +1,7 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
 import { useMantineColorScheme } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
-import cloneDeep from 'lodash-es/cloneDeep'
 import { ElementsContext, PlayerContext } from './context'
 import { StaticImage } from '../CanvasElements/StaticImage'
 import { BubbleText } from '../CanvasElements/BubbleText'
@@ -24,6 +23,11 @@ interface PlayerProps {
   onDeleteElement?: (uid: string) => void
 }
 
+// Extra padding around Stage so Transformer anchors at canvas edges are never clipped.
+// Stage is enlarged by PAD*2 on each axis; Layer is offset by -PAD so all element
+// coordinates remain unchanged.
+const PAD = 64
+
 export default function Player({
   width,
   height,
@@ -43,12 +47,11 @@ export default function Player({
   const containerRef = useRef<HTMLDivElement>(null)
   const [focusUid, setFocusUid] = useState('')
 
-  // ── Keyboard shortcut: Backspace (Mac) / Delete (Win) to remove active element ──
+  // ── Keyboard shortcut: Backspace / Delete ──
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     function handleKeyDown(e: KeyboardEvent) {
-      // Ignore if user is typing in an input/textarea
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
       if ((e.key === 'Backspace' || e.key === 'Delete') && activeUid) {
@@ -72,20 +75,14 @@ export default function Player({
     const updates: Partial<CanvasElement> = {}
 
     if (shapeType === 'mask' && obj.mask) {
-      // Mask circle drag/transform: update mask position & scale
       const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
-      const newMask = {
+      updates.mask = {
         ...obj.mask,
-        left,
-        top,
-        scaleX: scaleX || 1,
-        scaleY: scaleY || 1,
-        width: radius * 2,
-        height: radius * 2,
+        left, top,
+        scaleX: scaleX || 1, scaleY: scaleY || 1,
+        width: radius * 2, height: radius * 2,
       }
-      updates.mask = newMask
     } else if (shapeType === 'group') {
-      // Avatar group drag: update left/top directly
       updates.left = left
       updates.top = top
       if (e.type === 'transformend') {
@@ -113,7 +110,10 @@ export default function Player({
   useEffect(() => {
     const tNode = transformRef.current
     if (!activeUid) {
-      tNode?.nodes([]); tNode?.getLayer()?.batchDraw(); transformRectRef.current?.hide(); return
+      tNode?.nodes([])
+      tNode?.getLayer()?.batchDraw()
+      transformRectRef.current?.hide()
+      return
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
     if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
@@ -143,7 +143,11 @@ export default function Player({
   function toggleShapeSelect(e: any) {
     transformRectRef.current?.hide()
     setTimeout(() => {
-      const shape = stageRef.current?.getIntersection({ x: e.evt.offsetX, y: e.evt.offsetY })
+      // getIntersection uses layer coords; subtract PAD to account for layer offset
+      const shape = stageRef.current?.getIntersection({
+        x: e.evt.offsetX + PAD,
+        y: e.evt.offsetY + PAD,
+      })
       const uid = shape?.attrs?.id
       uid && setActiveUid('', uid)
     }, 100)
@@ -157,6 +161,11 @@ export default function Player({
   const syncPosWrapper = useCallback(syncPosToState, [elements, onSyncPos])
   const setActiveWrapper = useCallback(setActiveUid, [onSetActive])
 
+  // Stage is larger than canvas by PAD on each side.
+  // Layer offset shifts coordinate origin so element x/y stays in canvas space.
+  const stageW = width  + PAD * 2
+  const stageH = height + PAD * 2
+
   return (
     <ElementsContext.Provider value={{
       syncPosToState: syncPosWrapper,
@@ -166,19 +175,50 @@ export default function Player({
       stageRef,
       setActiveUid: setActiveWrapper,
     }}>
-      {/* tabIndex makes div focusable for keyboard events */}
+      {/*
+        Outer container keeps original canvas dimensions for layout purposes.
+        overflow: visible — required so the enlarged Stage (which extends PAD px
+        in each direction) is not clipped by this div.
+      */}
       <div
         ref={containerRef}
         tabIndex={0}
-        style={{ width, height, position: 'relative', overflow: 'visible', outline: 'none' }}
-        onFocus={() => {}} // keep focusable
+        style={{
+          width, height,
+          position: 'relative',
+          overflow: 'visible',
+          outline: 'none',
+        }}
       >
-        <Stage ref={stageRef} width={width} height={height} onMouseDown={checkDeselect}>
-          <Layer>
+        {/*
+          Stage is positioned PAD px outside the container on all sides.
+          This gives Transformer enough room to draw anchors/border outside
+          the visible canvas area.
+        */}
+        <Stage
+          ref={stageRef}
+          width={stageW}
+          height={stageH}
+          style={{
+            position: 'absolute',
+            top: -PAD,
+            left: -PAD,
+          }}
+          onMouseDown={checkDeselect}
+        >
+          {/*
+            Layer offset: -PAD so all child elements keep their original
+            canvas-space coordinates unchanged.
+            offsetX/offsetY on Layer shifts the coordinate origin.
+          */}
+          <Layer offsetX={-PAD} offsetY={-PAD}>
+            {/* Canvas background — only fill the real canvas area */}
             <Rect width={width} height={height} fill={bgColor} />
+
             {elements.map(obj => (
               <RenderElement key={obj.uid} item={obj} />
             ))}
+
             <Rect
               visible={false}
               onDblClick={activeEditText}
@@ -186,6 +226,7 @@ export default function Player({
               draggable
               ref={transformRectRef}
             />
+
             <Transformer
               key="shapeTransform"
               id="shapeTransform"
@@ -202,20 +243,29 @@ export default function Player({
               borderStroke="#FF000D"
               onTransform={(e: any) => {
                 const anchorName = e.currentTarget.getActiveAnchor()
-                if (anchorName === 'top-center' || anchorName === 'bottom-center') e.target.scaleX(e.target.scaleY())
-                else if (anchorName === 'middle-left' || anchorName === 'middle-right') e.target.scaleY(e.target.scaleX())
+                if (anchorName === 'top-center' || anchorName === 'bottom-center')
+                  e.target.scaleX(e.target.scaleY())
+                else if (anchorName === 'middle-left' || anchorName === 'middle-right')
+                  e.target.scaleY(e.target.scaleX())
               }}
               rotateEnabled={false}
-              enabledAnchors={['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right']}
+              enabledAnchors={[
+                'top-left', 'top-center', 'top-right',
+                'middle-left', 'middle-right',
+                'bottom-left', 'bottom-center', 'bottom-right',
+              ]}
               boundBoxFunc={(oldBox: any, newBox: any) => {
-                if ((oldBox.width < 20 && newBox.width < oldBox.width) || (oldBox.height < 20 && newBox.height < oldBox.height)) return oldBox
+                if (
+                  (oldBox.width < 20 && newBox.width < oldBox.width) ||
+                  (oldBox.height < 20 && newBox.height < oldBox.height)
+                ) return oldBox
                 return newBox
               }}
             />
           </Layer>
         </Stage>
 
-        {/* Empty placeholder — pure div, theme-aware, no canvas drawing */}
+        {/* Empty placeholder */}
         {elements.length === 0 && !spinning && <EmptyPlaceholder isDark={isDark} />}
 
         {focusUid && (
@@ -241,7 +291,6 @@ function RenderElement({ item }: { item: CanvasElement }) {
   return <Text fill="red" text="未知元素类型" />
 }
 
-/** Theme-aware empty placeholder — pure div, positioned absolutely */
 function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
   const { t } = useTranslation()
   const iconColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)'
