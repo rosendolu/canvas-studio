@@ -77,13 +77,14 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             const { element } = action.payload
             const uid = nanoid()
             const el = { ...element, uid }
-            // Find track line by type or create new
             let trackLine = state.track.find(t => t.type === el.type)
             if (!trackLine) {
               state.track.push({ uid: nanoid(), type: el.type, muted: false, volume: 1, lineList: [] })
               trackLine = state.track[state.track.length - 1]
             }
             trackLine.lineList.push(el)
+            // Auto-select the newly added element
+            state.chooseDataUid = uid
             break
           }
 

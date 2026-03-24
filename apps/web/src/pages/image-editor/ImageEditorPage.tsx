@@ -36,6 +36,10 @@ export function ImageEditorPage() {
     dispatch({ type: 'addElement', payload: el as CanvasElement })
   }, [dispatch])
 
+  const handleDeleteElement = useCallback((uid: string) => {
+    dispatch({ type: 'removeElement', payload: uid })
+  }, [dispatch])
+
   const activeElement = elements.find(el => el.uid === activeUid)
 
   return (
@@ -99,6 +103,7 @@ export function ImageEditorPage() {
             onSetActive={handleSetActive}
             onSetCanvasSize={handleSetCanvasSize}
             onUpdateElements={handleUpdateElements}
+            onDeleteElement={handleDeleteElement}
           />
         </Box>
 

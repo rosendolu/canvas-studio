@@ -63,9 +63,12 @@ export const useLiveStore = create<LiveState & LiveActions>()(
             state.aspectRatio = action.payload
             break
 
-          case 'addElement':
-            page.elements.push({ ...action.payload, uid: nanoid() })
+          case 'addElement': {
+            const newUid = nanoid()
+            page.elements.push({ ...action.payload, uid: newUid })
+            page.activeElementsUid = newUid
             break
+          }
 
           case 'removeElement':
             page.elements = page.elements.filter(el => el.uid !== action.payload)

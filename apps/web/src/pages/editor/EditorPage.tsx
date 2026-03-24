@@ -50,6 +50,10 @@ export function EditorPage() {
     dispatch({ type: 'addTrackElement', payload: { element: el as CanvasElement } })
   }, [dispatch])
 
+  const handleDeleteElement = useCallback((uid: string) => {
+    dispatch({ type: 'removeTrackElement', payload: { uid } })
+  }, [dispatch])
+
   const timelineUserConfig = { start: 0, step: fps, scale: trackScale }
 
   return (
@@ -83,6 +87,7 @@ export function EditorPage() {
             onSetActive={handleSetActive}
             onSetCanvasSize={handleSetCanvasSize}
             onUpdateElements={handleUpdateElements}
+            onDeleteElement={handleDeleteElement}
           />
         </Box>
       </Box>

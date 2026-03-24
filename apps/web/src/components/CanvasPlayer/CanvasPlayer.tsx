@@ -18,6 +18,7 @@ interface CanvasPlayerProps {
   onSetActive: (type: string, uid: string) => void
   onSetCanvasSize: (w: number, h: number) => void
   onUpdateElements: (elements: CanvasElement[], drawWidth?: number, drawHeight?: number) => void
+  onDeleteElement?: (uid: string) => void
 }
 
 /**
@@ -42,7 +43,7 @@ function checkerboardBg(isDark: boolean): React.CSSProperties {
 
 export default function CanvasPlayer({
   elements, activeUid, bgColor, aspectRatio = '16:9',
-  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements,
+  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements, onDeleteElement,
 }: CanvasPlayerProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ width: 0, height: 0 })
@@ -155,6 +156,7 @@ export default function CanvasPlayer({
               bgColor={bgColor}
               onSyncPos={onSyncPos}
               onSetActive={onSetActive}
+              onDeleteElement={onDeleteElement}
             />
           </div>
         )}

@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
+import { useMantineColorScheme } from '@mantine/core'
 import cloneDeep from 'lodash-es/cloneDeep'
 import { ElementsContext, PlayerContext } from './context'
 import { StaticImage } from '../CanvasElements/StaticImage'
@@ -19,22 +20,9 @@ interface PlayerProps {
   bgColor?: string
   onSyncPos: (uid: string, updates: Partial<CanvasElement>) => void
   onSetActive: (type: string, uid: string) => void
-  /** Video timeline mode: filter by currentFrame */
-  currentFrame?: number
+  onDeleteElement?: (uid: string) => void
 }
 
-/**
- * Konva Stage Player
- * 通用画布播放器，支持以下元素类型：
- * - background / background-video (背景图/视频帧)
- * - avatar (数字人，支持圆形蒙版)
- * - sticker / product (贴图/商品)
- * - bubbleText (气泡文字，可编辑)
- * - picture-scrolling (无缝滚动轮播)
- * - slideshow (幻灯片切换)
- * - apng (APNG 动态贴图)
- * - solid-color (纯色背景)
- */
 export default function Player({
   width,
   height,
@@ -43,12 +31,33 @@ export default function Player({
   bgColor = 'transparent',
   onSyncPos,
   onSetActive,
+  onDeleteElement,
 }: PlayerProps) {
   const { spinning } = useContext(PlayerContext)
+  const { colorScheme } = useMantineColorScheme()
+  const isDark = colorScheme === 'dark'
   const transformRef = useRef<any>(null)
   const stageRef = useRef<any>(null)
   const transformRectRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [focusUid, setFocusUid] = useState('')
+
+  // ── Keyboard shortcut: Backspace (Mac) / Delete (Win) to remove active element ──
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ignore if user is typing in an input/textarea
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
+      if ((e.key === 'Backspace' || e.key === 'Delete') && activeUid) {
+        e.preventDefault()
+        onDeleteElement?.(activeUid)
+      }
+    }
+    el.addEventListener('keydown', handleKeyDown)
+    return () => el.removeEventListener('keydown', handleKeyDown)
+  }, [activeUid, onDeleteElement])
 
   function syncPosToState(e: any) {
     const target = e.target
@@ -57,7 +66,6 @@ export default function Player({
     const [uid, shapeType] = (target.attrs.id?.split('$$') || []) as string[]
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
-
     const updates: Partial<CanvasElement> = {}
     if (shapeType === 'mask' && obj.mask) {
       obj.mask.left = left; obj.mask.top = top
@@ -82,7 +90,6 @@ export default function Player({
     onSetActive(type, uid)
   }
 
-  // Attach transformer to active element
   useEffect(() => {
     const tNode = transformRef.current
     if (!activeUid) {
@@ -139,7 +146,13 @@ export default function Player({
       stageRef,
       setActiveUid: setActiveWrapper,
     }}>
-      <div style={{ width, height, position: 'relative', overflow: 'hidden' }}>
+      {/* tabIndex makes div focusable for keyboard events */}
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        style={{ width, height, position: 'relative', overflow: 'hidden', outline: 'none' }}
+        onFocus={() => {}} // keep focusable
+      >
         <Stage ref={stageRef} width={width} height={height} onMouseDown={checkDeselect}>
           <Layer>
             <Rect width={width} height={height} fill={bgColor} />
@@ -182,10 +195,17 @@ export default function Player({
           </Layer>
         </Stage>
 
-        {elements.length === 0 && !spinning && <EmptyPlaceholder />}
-        {focusUid && <CanvasInputLayer elements={elements} focusUid={focusUid} setFocusUid={setFocusUid} onUpdateElements={(elements) => {
-          // This will be handled by parent
-        }} />}
+        {/* Empty placeholder — pure div, theme-aware, no canvas drawing */}
+        {elements.length === 0 && !spinning && <EmptyPlaceholder isDark={isDark} />}
+
+        {focusUid && (
+          <CanvasInputLayer
+            elements={elements}
+            focusUid={focusUid}
+            setFocusUid={setFocusUid}
+            onUpdateElements={() => {}}
+          />
+        )}
       </div>
     </ElementsContext.Provider>
   )
@@ -201,17 +221,27 @@ function RenderElement({ item }: { item: CanvasElement }) {
   return <Text fill="red" text="未知元素类型" />
 }
 
-function EmptyPlaceholder() {
+/** Theme-aware empty placeholder — pure div, positioned absolutely */
+function EmptyPlaceholder({ isDark }: { isDark: boolean }) {
+  const iconColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.18)'
+  const textColor = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
   return (
-    <div style={{
-      position: 'absolute', inset: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'rgba(128,128,128,0.6)',
-      pointerEvents: 'none',
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 52, opacity: 0.5 }}>🎬</div>
-        <div style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>点击左侧添加元素</div>
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        gap: 10,
+      }}
+    >
+      <div style={{ fontSize: 48, lineHeight: 1, color: iconColor }}>🎨</div>
+      <div style={{ fontSize: 13, color: textColor, letterSpacing: 0.3 }}>
+        从左侧面板添加素材
       </div>
     </div>
   )
