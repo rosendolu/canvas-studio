@@ -32,7 +32,7 @@ export type LiveAction =
 function createDefaultPage(): PageState {
   return {
     uid: nanoid(),
-    bgColor: '#ffffff',
+    bgColor: 'transparent',
     elements: [],
     activeElementsUid: '',
   }
