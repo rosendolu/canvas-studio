@@ -65,7 +65,12 @@ export default function Player({
     const obj = elements.find(el => el.uid === uid)
     if (!obj) return
 
-    const left = target.x(), top = target.y()
+    // For nodes with offsetX/offsetY (StaticImage), node.x() = item.left + offsetX
+    // So: item.left = node.x() - offsetX
+    const offsetX = target.offsetX?.() ?? 0
+    const offsetY = target.offsetY?.() ?? 0
+    const left = target.x() - offsetX
+    const top  = target.y() - offsetY
     const scaleX = target.scaleX(), scaleY = target.scaleY()
     const updates: Partial<CanvasElement> = {}
 
@@ -73,13 +78,14 @@ export default function Player({
       const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
       updates.mask = {
         ...obj.mask,
-        left, top,
+        left: target.x(), top: target.y(),   // mask circle: no offset
         scaleX: scaleX || 1, scaleY: scaleY || 1,
         width: radius * 2, height: radius * 2,
       }
     } else if (shapeType === 'group') {
-      updates.left = left
-      updates.top = top
+      // Avatar group has no offsetX/offsetY
+      updates.left = target.x()
+      updates.top  = target.y()
       if (e.type === 'transformend') {
         updates.scaleX = scaleX || 1
         updates.scaleY = scaleY || 1
@@ -87,8 +93,11 @@ export default function Player({
     } else if (id.endsWith('bubbleText')) {
       updates.left = left; updates.top = top
     } else {
-      updates.left = left; updates.top = top
-      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
+      // StaticImage: compensate for offsetX/offsetY
+      updates.left   = left
+      updates.top    = top
+      updates.scaleX = scaleX || 1
+      updates.scaleY = scaleY || 1
     }
 
     const rotation = target.rotation() || 0
@@ -121,9 +130,13 @@ export default function Player({
         const w = active.width()
         const h = active.height()
         const scale = active.scale()
-        const position = active.position()
+        // active.position() returns the node's x/y which includes offsetX/offsetY
+        // For transformRectRef we need the visual top-left position
+        const ox = active.offsetX?.() ?? 0
+        const oy = active.offsetY?.() ?? 0
+        const pos = active.position()
         if (w) {
-          shape.position(position)
+          shape.position({ x: pos.x - ox, y: pos.y - oy })
           shape.width(w)
           shape.height(h)
           shape.scale(scale)

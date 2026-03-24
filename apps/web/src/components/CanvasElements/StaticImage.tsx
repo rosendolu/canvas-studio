@@ -24,6 +24,11 @@ export function StaticImage({ item, draggable = true }: StaticImageProps) {
   const [image] = useImage(sourceURL, 'anonymous')
   const isBubbleText = item.type === 'bubbleText'
 
+  // offsetX/offsetY = half size → Konva scales/rotates around element center
+  // x/y compensated so visual top-left = item.left / item.top
+  const ox = isBubbleText ? 0 : item.width  / 2
+  const oy = isBubbleText ? 0 : item.height / 2
+
   return (
     <Image
       visible={item.visible}
@@ -33,8 +38,10 @@ export function StaticImage({ item, draggable = true }: StaticImageProps) {
       onMouseDown={() => setActiveUid(item.type, item.uid)}
       width={item.width}
       height={item.height}
-      x={isBubbleText ? 0 : item.left}
-      y={isBubbleText ? 0 : item.top}
+      offsetX={ox}
+      offsetY={oy}
+      x={isBubbleText ? 0 : item.left + ox}
+      y={isBubbleText ? 0 : item.top  + oy}
       scaleX={isBubbleText ? 1 : item.scaleX}
       scaleY={isBubbleText ? 1 : item.scaleY}
       rotation={isBubbleText ? 0 : item.rotation}
