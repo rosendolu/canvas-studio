@@ -115,6 +115,14 @@ export default function Player({
     if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
       active = stageRef.current?.findOne(`#${activeUid}$$group`)
     }
+
+    // avatar (mask element) does not support rotation
+    if (active && String(active?.attrs?.name || '').endsWith('avatar')) {
+      transformRef.current?.rotateEnabled(false)
+    } else {
+      transformRef.current?.rotateEnabled(true)
+    }
+
     if (active) {
       const shape = transformRectRef.current
       if (shape) {
@@ -122,11 +130,13 @@ export default function Player({
         const h = active.height()
         const scale = active.scale()
         const position = active.position()
+        const rotation = active.rotation()
         if (w) {
           shape.position(position)
           shape.width(w)
           shape.height(h)
           shape.scale(scale)
+          shape.rotation(rotation)
           shape.show()
           tNode?.nodes([active, shape])
           tNode?.getLayer()?.batchDraw()
