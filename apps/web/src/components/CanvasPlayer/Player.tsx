@@ -219,7 +219,7 @@ export default function Player({
                 else if (anchorName === 'middle-left' || anchorName === 'middle-right')
                   e.target.scaleY(e.target.scaleX())
               }}
-              rotateEnabled={false}
+              rotateEnabled
               enabledAnchors={[
                 'top-left', 'top-center', 'top-right',
                 'middle-left', 'middle-right',
@@ -244,6 +244,12 @@ export default function Player({
                 }
                 if (anchor.hasName('middle-left') || anchor.hasName('middle-right')) {
                   anchor.width(8); anchor.height(16); anchor.cornerRadius(4)
+                }
+                if (anchor.hasName('rotater')) {
+                  anchor.width(16); anchor.height(16)
+                  anchor.offsetY(8); anchor.offsetX(8)
+                  anchor.cornerRadius(8)
+                  anchor.fill('#FF000D'); anchor.stroke('#FF000D')
                 }
               }}
             />
