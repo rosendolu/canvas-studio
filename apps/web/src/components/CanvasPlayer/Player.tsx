@@ -103,12 +103,14 @@ export default function Player({
   }
 
   // ── Attach Transformer to active element ──
+  // Only re-attach when activeUid changes, NOT when elements change.
+  // Re-attaching on every elements update causes the Transformer to reset
+  // its rotation/scale state mid-interaction (e.g. during rotation drag).
   useEffect(() => {
     const tNode = transformRef.current
     if (!activeUid) {
       tNode?.nodes([])
       tNode?.getLayer()?.batchDraw()
-      transformRectRef.current?.hide()
       return
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
@@ -118,25 +120,19 @@ export default function Player({
 
     // avatar (mask element) does not support rotation
     if (active && String(active?.attrs?.name || '').endsWith('avatar')) {
-      transformRef.current?.rotateEnabled(false)
+      tNode?.rotateEnabled(false)
     } else {
-      transformRef.current?.rotateEnabled(true)
+      tNode?.rotateEnabled(true)
     }
 
     if (active) {
-      const w = active.width()
-      if (w) {
-        // Attach Transformer directly to the real node — no mirror rect.
-        // Transformer reads the node's full transform (position/scale/rotation)
-        // and draws the selection box correctly even when rotated.
-        tNode?.nodes([active])
-        tNode?.getLayer()?.batchDraw()
-      }
+      tNode?.nodes([active])
+      tNode?.getLayer()?.batchDraw()
     } else {
       tNode?.nodes([])
       tNode?.getLayer()?.batchDraw()
     }
-  }, [activeUid, elements])
+  }, [activeUid])  // ← only activeUid, not elements
 
   const checkDeselect = (e: any) => {
     if (e.target === e.target.getStage()) {
