@@ -124,28 +124,17 @@ export default function Player({
     }
 
     if (active) {
-      const shape = transformRectRef.current
-      if (shape) {
-        const w = active.width()
-        const h = active.height()
-        const scale = active.scale()
-        const position = active.position()
-        const rotation = active.rotation()
-        if (w) {
-          shape.position(position)
-          shape.width(w)
-          shape.height(h)
-          shape.scale(scale)
-          shape.rotation(rotation)
-          shape.show()
-          tNode?.nodes([active, shape])
-          tNode?.getLayer()?.batchDraw()
-        }
+      const w = active.width()
+      if (w) {
+        // Attach Transformer directly to the real node — no mirror rect.
+        // Transformer reads the node's full transform (position/scale/rotation)
+        // and draws the selection box correctly even when rotated.
+        tNode?.nodes([active])
+        tNode?.getLayer()?.batchDraw()
       }
     } else {
       tNode?.nodes([])
       tNode?.getLayer()?.batchDraw()
-      transformRectRef.current?.hide()
     }
   }, [activeUid, elements])
 
@@ -205,7 +194,6 @@ export default function Player({
               visible={false}
               onDblClick={activeEditText}
               onClick={toggleShapeSelect}
-              draggable
               ref={transformRectRef}
             />
             <Transformer
