@@ -73,9 +73,10 @@ export function useCustomAssets(type: AssetType) {
       originalHeight: height,
       createdAt: Date.now(),
     }
-    await persist([asset, ...items])
+    const current = (await localforage.getItem<CustomAsset[]>(storeKey(type))) ?? []
+    await persist([asset, ...current])
     return asset
-  }, [items, persist, type])
+  }, [persist, type])
 
   /** Add asset from a File (converts to base64) */
   const addFromFile = useCallback(async (file: File) => {
@@ -90,14 +91,16 @@ export function useCustomAssets(type: AssetType) {
       originalHeight: height,
       createdAt: Date.now(),
     }
-    await persist([asset, ...items])
+    const current = (await localforage.getItem<CustomAsset[]>(storeKey(type))) ?? []
+    await persist([asset, ...current])
     return asset
-  }, [items, persist, type])
+  }, [persist, type])
 
   /** Remove asset by id */
   const remove = useCallback(async (id: string) => {
-    await persist(items.filter(a => a.id !== id))
-  }, [items, persist])
+    const current = (await localforage.getItem<CustomAsset[]>(storeKey(type))) ?? []
+    await persist(current.filter(a => a.id !== id))
+  }, [persist, type])
 
   return { items, loading, addFromUrl, addFromFile, remove }
 }
