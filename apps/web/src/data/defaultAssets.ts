@@ -83,8 +83,8 @@ export const DEFAULT_CAROUSEL_SETS = [
 ]
 
 export const DEFAULT_BUBBLE_TEXTS = [
-  { text: '🎉 精彩内容', color: '#ffffff', fontSize: 18 },
+  { text: '🎉 精彩内容', color: 'auto', fontSize: 18 },
   { text: '💡 创意无限', color: '#ffd700', fontSize: 18 },
   { text: '🚀 立即开始', color: '#00e5ff', fontSize: 18 },
-  { text: 'Hello 👋', color: '#ffffff', fontSize: 16 },
+  { text: 'Hello 👋', color: 'auto', fontSize: 16 },
 ]

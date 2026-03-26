@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Stack, Tabs, Text, Box, Button, ColorInput, Divider, TextInput, Image, Tooltip, UnstyledButton } from '@mantine/core'
+import { useMantineColorScheme } from '@mantine/core'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import {
@@ -69,6 +70,8 @@ function AssetGrid({ items, accentColor, onAdd }: {
 
 export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementMenuProps) {
   const { t } = useTranslation()
+  const { colorScheme } = useMantineColorScheme()
+  const isDark = colorScheme === 'dark'
   const [imgUrl, setImgUrl] = useState('')
   const [stickerUrl, setStickerUrl] = useState('')
   const [maskUrl, setMaskUrl] = useState('')
@@ -115,7 +118,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
       src: bubbleSrc.trim(),
       text: preset?.text || bubbleText || 'Hello 👋',
       fontSize: preset?.fontSize || 16,
-      color: preset?.color || '#ffffff',
+      color: resolveColor(preset?.color ?? 'auto', isDark),
       fontFamily: 'sans-serif',
       originalWidth: 160, originalHeight: 60,
       width: 0, height: 0,
@@ -211,7 +214,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
           <Stack gap="sm">
             <Text size="xs" c="dimmed">{t('elements.bubbleText')}</Text>
             {/* Bubble text presets — vertical stack list */}
-            <BubblePresetList items={DEFAULT_BUBBLE_TEXTS} onAdd={addBubbleText} />
+            <BubblePresetList items={DEFAULT_BUBBLE_TEXTS} onAdd={addBubbleText} isDark={isDark} />
             <Divider labelPosition="center" />
             <TextInput size="xs" label={t('elements.bubbleContent')} value={bubbleText} onChange={e => setBubbleText(e.target.value)} />
             <TextInput size="xs" label={t('elements.bubbleBgUrl')} placeholder="https://..." value={bubbleSrc} onChange={e => setBubbleSrc(e.target.value)} />
@@ -223,56 +226,68 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
   )
 }
 
+// ── resolveColor ─────────────────────────────────────────────────────────────
+/** 将 'auto' 令牌解析为主题适配的实际颜色，其他颜色值原样返回 */
+function resolveColor(color: string, isDark: boolean): string {
+  if (color === 'auto') return isDark ? '#ffffff' : '#1a1a1a'
+  return color
+}
+
 // ── BubblePresetList ──────────────────────────────────────────────────────────
 function BubblePresetList({
   items,
   onAdd,
+  isDark,
 }: {
   items: { text: string; color: string; fontSize: number }[]
   onAdd: (b: { text: string; color: string; fontSize: number }) => void
+  isDark: boolean
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   return (
     <Stack gap={4}>
-      {items.map((b, i) => (
-        <UnstyledButton
-          key={i}
-          onClick={() => onAdd(b)}
-          aria-label={b.text}
-          onMouseEnter={() => setHoveredIndex(i)}
-          onMouseLeave={() => setHoveredIndex(null)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            padding: '6px 8px',
-            borderRadius: 6,
-            borderLeft: `3px solid ${b.color}`,
-            background: hoveredIndex === i
-              ? 'var(--mantine-color-default-hover)'
-              : 'var(--mantine-color-default)',
-            cursor: 'pointer',
-            transition: 'background 0.15s',
-          }}
-        >
-          <Text
-            size="xs"
+      {items.map((b, i) => {
+        const displayColor = resolveColor(b.color, isDark)
+        return (
+          <UnstyledButton
+            key={i}
+            onClick={() => onAdd(b)}
+            aria-label={b.text}
+            onMouseEnter={() => setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
             style={{
-              color: b.color,
-              flex: 1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              padding: '6px 8px',
+              borderRadius: 6,
+              borderLeft: `3px solid ${displayColor}`,
+              background: hoveredIndex === i
+                ? 'var(--mantine-color-default-hover)'
+                : 'var(--mantine-color-default)',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
             }}
           >
-            {b.text}
-          </Text>
-          <Text size="xs" c="dimmed" ml={6} style={{ flexShrink: 0 }}>
-            {b.fontSize}px
-          </Text>
-        </UnstyledButton>
-      ))}
+            <Text
+              size="xs"
+              style={{
+                color: displayColor,
+                flex: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {b.text}
+            </Text>
+            <Text size="xs" c="dimmed" ml={6} style={{ flexShrink: 0 }}>
+              {b.fontSize}px
+            </Text>
+          </UnstyledButton>
+        )
+      })}
     </Stack>
   )
 }
