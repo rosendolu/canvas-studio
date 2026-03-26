@@ -78,23 +78,28 @@ export default function Player({
         width: radius * 2, height: radius * 2,
       }
     } else if (shapeType === 'group') {
-      updates.left = left
-      updates.top = top
+      if (String(target?.attrs?.name || '').endsWith('bubbleText')) {
+        updates.left = left
+        updates.top = top
+      } else {
+        // non-bubbleText group (avatar): store as offsetX/offsetY
+        updates.offsetX = left || 0
+        updates.offsetY = top || 0
+      }
       if (e.type === 'transformend') {
         updates.scaleX = scaleX || 1
         updates.scaleY = scaleY || 1
       }
-    } else if (id.endsWith('bubbleText')) {
-      updates.left = left; updates.top = top
     } else {
-      updates.left = left; updates.top = top
-      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
+      updates.left = left
+      updates.top = top
+      updates.scaleX = scaleX || 1
+      updates.scaleY = scaleY || 1
     }
 
+    // rotation always written unconditionally
     const rotation = target.rotation() || 0
-    if (!('mask' in updates)) {
-      updates.rotation = rotation < 0 ? 360 + rotation : rotation
-    }
+    updates.rotation = rotation < 0 ? 360 + rotation : rotation
     onSyncPos(uid, updates)
   }
 
@@ -112,25 +117,29 @@ export default function Player({
       return
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
+
+    let w = active?.width(),
+        h = active?.height(),
+        scale = active?.scale(),
+        position = active?.position()
+
     if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
-      active = stageRef.current?.findOne(`#${activeUid}$$group`)
+      const activeGroup = stageRef.current?.findOne(`#${activeUid}$$group`)
+      active = activeGroup
+      scale = active?.scale()
+      position = active?.position()
     }
+
     if (active) {
       const shape = transformRectRef.current
-      if (shape) {
-        const w = active.width()
-        const h = active.height()
-        const scale = active.scale()
-        const position = active.position()
-        if (w) {
-          shape.position(position)
-          shape.width(w)
-          shape.height(h)
-          shape.scale(scale)
-          shape.show()
-          tNode?.nodes([active, shape])
-          tNode?.getLayer()?.batchDraw()
-        }
+      if (w) {
+        shape.position(position)
+        shape.width(w)
+        shape.height(h)
+        shape.scale(scale)
+        shape.show()
+        tNode?.nodes([active, shape])
+        tNode?.getLayer()?.batchDraw()
       }
     } else {
       tNode?.nodes([])

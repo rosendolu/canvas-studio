@@ -14,36 +14,32 @@ import type { CanvasElement } from '../types'
 export function initElementPos(el: CanvasElement, pos: { width: number; height: number }) {
   const { width: canvasWidth, height: canvasHeight } = pos
   const ratio = el.originalWidth / el.originalHeight
+  const scale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
+  const maxScale = Math.max(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
+
+  // contain fit, capped at original size to avoid blurring
+  el.height = Math.min(scale * el.originalHeight, el.originalHeight)
+  el.width = ratio * el.height
 
   if (/background/.test(el.type)) {
-    // cover: 铺满
-    const maxScale = Math.max(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
     el.width = el.originalWidth * maxScale
     el.height = el.width / ratio
   } else if (el.type === 'sticker') {
-    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
-    el.width = Math.min(el.originalWidth * containScale, canvasWidth * 0.4)
+    el.width = Math.min(el.width, 150)
     el.height = el.width / ratio
   } else if (el.type === 'bubbleText') {
-    el.width = Math.min(el.originalWidth, canvasWidth * 0.4)
+    el.width = Math.min(el.width, 150)
     el.height = el.width / ratio
     el.height = Math.max(el.height, 50)
     el.width = el.height * ratio
-  } else if (el.type === 'avatar') {
-    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
-    el.width = el.originalWidth * containScale * 0.5
-    el.height = el.width / ratio
-  } else {
-    const containScale = Math.min(canvasWidth / el.originalWidth, canvasHeight / el.originalHeight)
-    el.width = el.originalWidth * containScale
-    el.height = el.width / ratio
   }
+  // avatar and others: use default contain fit above
 
   el.scaleX = 1
   el.scaleY = 1
   el.offsetX = 0
   el.offsetY = 0
-  // Center on canvas (avatar bottom-aligned)
+
   el.left = (canvasWidth - el.width) / 2
   el.top = el.type === 'avatar'
     ? canvasHeight - el.height
