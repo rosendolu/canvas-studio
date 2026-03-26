@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Stack, Tabs, Text, Box, Button, ColorInput, Divider, TextInput, Image, Tooltip, UnstyledButton } from '@mantine/core'
+import { useState, useRef } from 'react'
+import { Stack, Tabs, Text, Box, Button, ColorInput, Divider, TextInput, Image, Tooltip, UnstyledButton, ActionIcon, Skeleton } from '@mantine/core'
+import { useMantineColorScheme } from '@mantine/core'
+import { IconTrash, IconUpload, IconPlus } from '@tabler/icons-react'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import {
@@ -9,6 +11,7 @@ import {
   DEFAULT_CAROUSEL_SETS,
   DEFAULT_BUBBLE_TEXTS,
 } from '../../data/defaultAssets'
+import { useCustomAssets, type AssetType } from '../../hooks/useCustomAssets'
 
 interface ElementMenuProps {
   onAddElement: (el: Omit<CanvasElement, 'uid'>) => void
@@ -69,6 +72,8 @@ function AssetGrid({ items, accentColor, onAdd }: {
 
 export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementMenuProps) {
   const { t } = useTranslation()
+  const { colorScheme } = useMantineColorScheme()
+  const isDark = colorScheme === 'dark'
   const [imgUrl, setImgUrl] = useState('')
   const [stickerUrl, setStickerUrl] = useState('')
   const [maskUrl, setMaskUrl] = useState('')
@@ -167,6 +172,11 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
             <Divider label={t('elements.imgVideoBg')} labelPosition="center" />
             <TextInput size="xs" label={t('elements.imageUrl')} placeholder="https://..." value={imgUrl} onChange={e => setImgUrl(e.target.value)} />
             <Button size="xs" onClick={() => addBackground()} disabled={!imgUrl.trim()}>{t('elements.addBgImage')}</Button>
+            <CustomAssetsSection
+              type="background"
+              accentColor="var(--mantine-color-violet-5)"
+              onAdd={a => addBackground(a.src, a.originalWidth, a.originalHeight)}
+            />
           </Stack>
         </Tabs.Panel>
 
@@ -181,6 +191,11 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
             />
             <TextInput size="xs" label={t('elements.imageUrl')} placeholder="https://..." value={stickerUrl} onChange={e => setStickerUrl(e.target.value)} />
             <Button size="xs" onClick={() => addSticker()} disabled={!stickerUrl.trim()}>{t('elements.addSticker')}</Button>
+            <CustomAssetsSection
+              type="sticker"
+              accentColor="var(--mantine-color-cyan-5)"
+              onAdd={a => addSticker(a.src, a.originalWidth, a.originalHeight)}
+            />
 
             <Divider label="Slideshow" labelPosition="center" />
             {DEFAULT_CAROUSEL_SETS.map(set => (
@@ -203,6 +218,11 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
             <Divider labelPosition="center" />
             <TextInput size="xs" label={t('elements.maskUrl')} placeholder="https://..." value={maskUrl} onChange={e => setMaskUrl(e.target.value)} />
             <Button size="xs" onClick={() => addMask()} disabled={!maskUrl.trim()}>{t('elements.addMask')}</Button>
+            <CustomAssetsSection
+              type="mask"
+              accentColor="var(--mantine-color-teal-5)"
+              onAdd={a => addMask(a.src, a.originalWidth, a.originalHeight)}
+            />
           </Stack>
         </Tabs.Panel>
 
@@ -273,6 +293,108 @@ function BubblePresetList({
           </Text>
         </UnstyledButton>
       ))}
+    </Stack>
+  )
+}
+
+// ── CustomAssetsSection ───────────────────────────────────────────────────────
+function CustomAssetsSection({
+  type,
+  accentColor,
+  onAdd,
+}: {
+  type: AssetType
+  accentColor: string
+  onAdd: (a: { src: string; originalWidth: number; originalHeight: number }) => void
+}) {
+  const { t } = useTranslation()
+  const { items, loading, addFromUrl, addFromFile, remove } = useCustomAssets(type)
+  const [customUrl, setCustomUrl] = useState('')
+  const [adding, setAdding] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleAddUrl() {
+    const url = customUrl.trim()
+    if (!url) return
+    setAdding(true)
+    try {
+      await addFromUrl(url)
+      setCustomUrl('')
+    } catch {
+      // ignore bad URL
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAdding(true)
+    try {
+      await addFromFile(file)
+    } finally {
+      setAdding(false)
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <Stack gap="xs">
+      <Divider label={t('elements.myAssets')} labelPosition="center" />
+
+      {/* Loading skeleton */}
+      {loading && (
+        <Box style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+          {[1, 2].map(i => <Skeleton key={i} height={52} radius={6} />)}
+        </Box>
+      )}
+
+      {/* Saved assets grid with delete */}
+      {!loading && items.length > 0 && (
+        <Box style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+          {items.map(item => (
+            <Box
+              key={item.id}
+              style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', cursor: 'pointer', border: '2px solid transparent', transition: 'border-color .15s' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = accentColor)}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
+              onClick={() => onAdd(item)}
+            >
+              <Image src={item.src} h={52} fit="cover" style={{ display: 'block', width: '100%' }} />
+              <ActionIcon
+                size="xs"
+                variant="filled"
+                color="red"
+                style={{ position: 'absolute', top: 2, right: 2, opacity: 0.85 }}
+                onClick={e => { e.stopPropagation(); remove(item.id) }}
+                title={t('elements.deleteAsset')}
+              >
+                <IconTrash size={10} />
+              </ActionIcon>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* URL input + Upload button */}
+      <Box style={{ display: 'flex', gap: 4 }}>
+        <TextInput
+          size="xs"
+          placeholder={t('elements.customUrlPlaceholder')}
+          value={customUrl}
+          onChange={e => setCustomUrl(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleAddUrl()}
+          style={{ flex: 1 }}
+        />
+        <ActionIcon size="sm" variant="light" loading={adding} onClick={handleAddUrl} disabled={!customUrl.trim()} title={t('elements.addCustom')}>
+          <IconPlus size={14} />
+        </ActionIcon>
+        <ActionIcon size="sm" variant="light" loading={adding} onClick={() => fileInputRef.current?.click()} title={t('elements.uploadImage')}>
+          <IconUpload size={14} />
+        </ActionIcon>
+      </Box>
+      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
     </Stack>
   )
 }

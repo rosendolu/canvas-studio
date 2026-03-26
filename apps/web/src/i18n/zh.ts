@@ -59,6 +59,12 @@ const zh = {
       maskUrl: '图片 URL',
       addMask: '添加蒙版图片',
       defaultAssets: '默认素材',
+      myAssets: '我的素材',
+      uploadImage: '上传图片',
+      addCustom: '添加',
+      deleteAsset: '删除',
+      customUrlPlaceholder: '粘贴图片 URL...',
+      loadingAssets: '加载中...',
     },
     canvas: {
       emptyHint: '从左侧面板添加素材',

@@ -59,6 +59,12 @@ const en = {
       maskUrl: 'Image URL',
       addMask: 'Add Masked Image',
       defaultAssets: 'Default Assets',
+      myAssets: 'My Assets',
+      uploadImage: 'Upload Image',
+      addCustom: 'Add',
+      deleteAsset: 'Delete',
+      customUrlPlaceholder: 'Paste image URL...',
+      loadingAssets: 'Loading...',
     },
     canvas: {
       emptyHint: 'Add assets from the left panel',
