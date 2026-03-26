@@ -211,32 +211,7 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
           <Stack gap="sm">
             <Text size="xs" c="dimmed">{t('elements.bubbleText')}</Text>
             {/* Bubble text presets — vertical stack list */}
-            <Stack gap={4}>
-              {DEFAULT_BUBBLE_TEXTS.map((b, i) => (
-                <UnstyledButton
-                  key={i}
-                  onClick={() => addBubbleText(b)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    padding: '6px 8px',
-                    borderRadius: 6,
-                    borderLeft: `3px solid ${b.color}`,
-                    background: 'var(--mantine-color-default)',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--mantine-color-default-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--mantine-color-default)')}
-                >
-                  <Text size="xs" style={{ color: b.color, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {b.text}
-                  </Text>
-                  <Text size="xs" c="dimmed" ml={6} style={{ flexShrink: 0 }}>{b.fontSize}px</Text>
-                </UnstyledButton>
-              ))}
-            </Stack>
+            <BubblePresetList items={DEFAULT_BUBBLE_TEXTS} onAdd={addBubbleText} />
             <Divider labelPosition="center" />
             <TextInput size="xs" label={t('elements.bubbleContent')} value={bubbleText} onChange={e => setBubbleText(e.target.value)} />
             <TextInput size="xs" label={t('elements.bubbleBgUrl')} placeholder="https://..." value={bubbleSrc} onChange={e => setBubbleSrc(e.target.value)} />
@@ -244,6 +219,60 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
           </Stack>
         </Tabs.Panel>
       </Tabs>
+    </Stack>
+  )
+}
+
+// ── BubblePresetList ──────────────────────────────────────────────────────────
+function BubblePresetList({
+  items,
+  onAdd,
+}: {
+  items: { text: string; color: string; fontSize: number }[]
+  onAdd: (b: { text: string; color: string; fontSize: number }) => void
+}) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  return (
+    <Stack gap={4}>
+      {items.map((b, i) => (
+        <UnstyledButton
+          key={i}
+          onClick={() => onAdd(b)}
+          aria-label={b.text}
+          onMouseEnter={() => setHoveredIndex(i)}
+          onMouseLeave={() => setHoveredIndex(null)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            padding: '6px 8px',
+            borderRadius: 6,
+            borderLeft: `3px solid ${b.color}`,
+            background: hoveredIndex === i
+              ? 'var(--mantine-color-default-hover)'
+              : 'var(--mantine-color-default)',
+            cursor: 'pointer',
+            transition: 'background 0.15s',
+          }}
+        >
+          <Text
+            size="xs"
+            style={{
+              color: b.color,
+              flex: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {b.text}
+          </Text>
+          <Text size="xs" c="dimmed" ml={6} style={{ flexShrink: 0 }}>
+            {b.fontSize}px
+          </Text>
+        </UnstyledButton>
+      ))}
     </Stack>
   )
 }
