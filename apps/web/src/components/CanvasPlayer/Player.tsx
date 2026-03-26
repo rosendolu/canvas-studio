@@ -70,7 +70,6 @@ export default function Player({
     const updates: Partial<CanvasElement> = {}
 
     if (shapeType === 'mask' && obj.mask) {
-      // mask circle: store raw x/y (circle center in group coords)
       const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
       updates.mask = {
         ...obj.mask,
@@ -79,29 +78,23 @@ export default function Player({
         width: radius * 2, height: radius * 2,
       }
     } else if (shapeType === 'group') {
-      if (String(target?.attrs?.name || '').endsWith('bubbleText')) {
-        // bubbleText group drag → store left/top
-        updates.left = left
-        updates.top = top
-      } else {
-        // avatar group drag → store offsetX/offsetY (matches nnk-24h-live)
-        updates.offsetX = left || 0
-        updates.offsetY = top || 0
-      }
+      updates.left = left
+      updates.top = top
       if (e.type === 'transformend') {
         updates.scaleX = scaleX || 1
         updates.scaleY = scaleY || 1
       }
+    } else if (id.endsWith('bubbleText')) {
+      updates.left = left; updates.top = top
     } else {
-      updates.left = left
-      updates.top = top
-      updates.scaleX = scaleX || 1
-      updates.scaleY = scaleY || 1
+      updates.left = left; updates.top = top
+      updates.scaleX = scaleX || 1; updates.scaleY = scaleY || 1
     }
 
-    // rotation always written (including mask branch — matches nnk-24h-live)
     const rotation = target.rotation() || 0
-    updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    if (!('mask' in updates)) {
+      updates.rotation = rotation < 0 ? 360 + rotation : rotation
+    }
     onSyncPos(uid, updates)
   }
 
@@ -109,7 +102,7 @@ export default function Player({
     onSetActive(type, uid)
   }
 
-  // ── Attach Transformer to active element (matches nnk-24h-live) ──
+  // ── Attach Transformer to active element ──
   useEffect(() => {
     const tNode = transformRef.current
     if (!activeUid) {
@@ -119,29 +112,25 @@ export default function Player({
       return
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
-
-    let w = active?.width(),
-        h = active?.height(),
-        scale = active?.scale(),
-        position = active?.position()
-
     if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
-      const activeGroup = stageRef.current?.findOne(`#${activeUid}$$group`)
-      active = activeGroup
-      scale = active?.scale()
-      position = active?.position()
+      active = stageRef.current?.findOne(`#${activeUid}$$group`)
     }
-
     if (active) {
       const shape = transformRectRef.current
-      if (w) {
-        shape.position(position)
-        shape.width(w)
-        shape.height(h)
-        shape.scale(scale)
-        shape.show()
-        tNode?.nodes([active, shape])
-        tNode?.getLayer()?.batchDraw()
+      if (shape) {
+        const w = active.width()
+        const h = active.height()
+        const scale = active.scale()
+        const position = active.position()
+        if (w) {
+          shape.position(position)
+          shape.width(w)
+          shape.height(h)
+          shape.scale(scale)
+          shape.show()
+          tNode?.nodes([active, shape])
+          tNode?.getLayer()?.batchDraw()
+        }
       }
     } else {
       tNode?.nodes([])
@@ -255,12 +244,6 @@ export default function Player({
                 }
                 if (anchor.hasName('middle-left') || anchor.hasName('middle-right')) {
                   anchor.width(8); anchor.height(16); anchor.cornerRadius(4)
-                }
-                if (anchor.hasName('rotater')) {
-                  anchor.width(16); anchor.height(16)
-                  anchor.offsetY(8); anchor.offsetX(8)
-                  anchor.cornerRadius(8)
-                  anchor.fill('#FF000D'); anchor.stroke('#FF000D')
                 }
               }}
             />
