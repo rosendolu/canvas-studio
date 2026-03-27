@@ -97,6 +97,17 @@ const zh = {
       customUrlPlaceholder: '粘贴图片 URL...',
       loadingAssets: '加载中...',
     },
+    layers: {
+      title: '图层',
+      empty: '暂无元素',
+      moveUp: '上移',
+      moveDown: '下移',
+      show: '显示',
+      hide: '隐藏',
+      lock: '锁定',
+      unlock: '解锁',
+      delete: '删除',
+    },
     canvas: {
       emptyHint: '从左侧面板添加素材',
     },

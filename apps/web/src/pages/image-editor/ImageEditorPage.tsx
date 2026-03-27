@@ -11,6 +11,7 @@ import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
+import { LayerPanel } from '../../components/LayerPanel/LayerPanel'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
@@ -172,23 +173,35 @@ export function ImageEditorPage() {
           />
         </Box>
 
-        {/* Right: Properties */}
+        {/* Right: Layers + Properties */}
         <Box style={{
           width: 220,
           borderLeft: '1px solid var(--mantine-color-default-border)',
           background: 'var(--mantine-color-body)',
           overflowY: 'auto',
           flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
         }}>
-          <PropertyPanel
-            activeElement={activeElement}
-            onUpdate={updates => {
-              if (activeUid) dispatch({ type: 'updateElementAttr', payload: { uid: activeUid, updates } })
-            }}
-            onDelete={() => {
-              if (activeUid) dispatch({ type: 'removeElement', payload: activeUid })
-            }}
+          <LayerPanel
+            elements={elements}
+            activeUid={activeUid}
+            onSetActive={uid => dispatch({ type: 'activeElement', payload: uid })}
+            onUpdate={(uid, updates) => dispatch({ type: 'updateElementAttr', payload: { uid, updates } })}
+            onDelete={uid => dispatch({ type: 'removeElement', payload: uid })}
+            onReorder={els => dispatch({ type: 'updateElements', payload: els })}
           />
+          <Box style={{ borderTop: '1px solid var(--mantine-color-default-border)', flexShrink: 0 }}>
+            <PropertyPanel
+              activeElement={activeElement}
+              onUpdate={updates => {
+                if (activeUid) dispatch({ type: 'updateElementAttr', payload: { uid: activeUid, updates } })
+              }}
+              onDelete={() => {
+                if (activeUid) dispatch({ type: 'removeElement', payload: activeUid })
+              }}
+            />
+          </Box>
         </Box>
       </Box>
     </Box>

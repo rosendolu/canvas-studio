@@ -14,6 +14,7 @@ interface StaticImageProps {
  */
 export function StaticImage({ item, draggable = true }: StaticImageProps) {
   const { syncPosToState, setActiveUid } = useContext(ElementsContext)
+  const isDraggable = draggable && !item.locked
 
   const sourceURL = useMemo(() => {
     if (!item.src) return ''
@@ -30,8 +31,8 @@ export function StaticImage({ item, draggable = true }: StaticImageProps) {
       opacity={item.opacity ?? 1}
       id={item.uid}
       name={item.uid + item.type}
-      draggable={draggable}
-      onMouseDown={() => setActiveUid(item.type, item.uid)}
+      draggable={isDraggable}
+      onMouseDown={() => !item.locked && setActiveUid(item.type, item.uid)}
       width={item.width}
       height={item.height}
       x={isBubbleText ? 0 : item.left}
