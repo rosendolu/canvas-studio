@@ -98,6 +98,11 @@ const en = {
     canvas: {
       emptyHint: 'Add assets from the left panel',
     },
+    templates: {
+      tab: 'Templates',
+      title: 'Preset Templates',
+      apply: 'Apply Template',
+    },
   },
 }
 

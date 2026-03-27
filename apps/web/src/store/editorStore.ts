@@ -35,6 +35,7 @@ export type EditorAction =
   | { type: 'setActiveUid'; payload: string }
   | { type: 'setBgColor'; payload: string }
   | { type: 'updateTrack'; payload: TrackLine[] }
+  | { type: 'clearTrack' }
 
 const initialState: EditorState = {
   drawWidth: 0,
@@ -121,6 +122,10 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
           case 'updateTrack':
             state.track = action.payload
+            break
+          case 'clearTrack':
+            state.track = []
+            state.chooseDataUid = ''
             break
         }
       })

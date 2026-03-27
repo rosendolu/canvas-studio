@@ -113,6 +113,16 @@ export function EditorPage() {
     dispatch({ type: 'addTrackElement', payload: { element: el as CanvasElement } })
   }, [dispatch])
 
+  const handleApplyTemplate = useCallback((templateElements: CanvasElement[], aspectRatio: string) => {
+    saveRatio(aspectRatio)
+    dispatch({ type: 'setAspectRatio', payload: aspectRatio })
+    // Add all template elements as track elements (clears existing track first)
+    dispatch({ type: 'clearTrack' })
+    templateElements.forEach(el => {
+      dispatch({ type: 'addTrackElement', payload: { element: el } })
+    })
+  }, [dispatch, saveRatio])
+
   const handleDeleteElement = useCallback((uid: string) => {
     dispatch({ type: 'removeTrackElement', payload: { uid } })
   }, [dispatch])
@@ -136,6 +146,7 @@ export function EditorPage() {
         }}>
           <ElementMenu
             onAddElement={handleAddElement}
+            onApplyTemplate={handleApplyTemplate}
             bgColor={color}
             onBgColorChange={c => dispatch({ type: 'setBgColor', payload: c })}
           />

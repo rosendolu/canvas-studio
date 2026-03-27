@@ -26,9 +26,11 @@ import {
     DEFAULT_STICKERS,
 } from '../../data/defaultAssets';
 import { useCustomAssets, type AssetType } from '../../hooks/useCustomAssets';
+import { TemplatePicker } from '../TemplatePicker/TemplatePicker';
 
 interface ElementMenuProps {
     onAddElement: (el: Omit<CanvasElement, 'uid'>) => void;
+    onApplyTemplate?: (elements: CanvasElement[], aspectRatio: string) => void;
     bgColor: string;
     onBgColorChange: (color: string) => void;
 }
@@ -102,7 +104,7 @@ function AssetGrid({
     );
 }
 
-export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementMenuProps) {
+export function ElementMenu({ onAddElement, onApplyTemplate, bgColor, onBgColorChange }: ElementMenuProps) {
     const { t } = useTranslation();
     const { colorScheme } = useMantineColorScheme();
     const isDark = colorScheme === 'dark';
@@ -227,6 +229,9 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
                         overflowY: 'hidden',
                         scrollbarWidth: 'none',
                     }}>
+                    <Tabs.Tab value="templates" fz={10} style={{ flexShrink: 0 }}>
+                        {t('templates.tab')}
+                    </Tabs.Tab>
                     <Tabs.Tab value="background" fz={10} style={{ flexShrink: 0 }}>
                         {t('elements.tabBackground')}
                     </Tabs.Tab>
@@ -240,6 +245,15 @@ export function ElementMenu({ onAddElement, bgColor, onBgColorChange }: ElementM
                         {t('elements.tabText')}
                     </Tabs.Tab>
                 </Tabs.List>
+
+                {/* ── Templates Tab ── */}
+                <Tabs.Panel value="templates" style={{ flex: 1, overflowY: 'auto' }}>
+                    <TemplatePicker
+                        onApply={(elements, aspectRatio) => {
+                            onApplyTemplate?.(elements, aspectRatio)
+                        }}
+                    />
+                </Tabs.Panel>
 
                 {/* ── Background Tab ── */}
                 <Tabs.Panel value="background" style={{ flex: 1, overflowY: 'auto' }} p="sm">
