@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import type { CanvasElement, PageState, TrackLine } from '@canvas-studio/canvas-core'
 
 // ================================================================
-// Editor Store (video timeline mode - like image-maker)
+// Editor Store (video timeline mode)
 // ================================================================
 
 export interface EditorState {
@@ -18,10 +18,17 @@ export interface EditorState {
   chooseDataUid: string
   color: string
   maxTrackWidth: number
+  // Undo/redo history — snapshots of track
+  _history: TrackLine[][]
+  _historyIndex: number
 }
 
 export interface EditorActions {
   dispatch: (action: EditorAction) => void
+  undo: () => void
+  redo: () => void
+  canUndo: () => boolean
+  canRedo: () => boolean
 }
 
 export type EditorAction =
@@ -37,6 +44,8 @@ export type EditorAction =
   | { type: 'updateTrack'; payload: TrackLine[] }
   | { type: 'clearTrack' }
 
+const MAX_HISTORY = 30
+
 const initialState: EditorState = {
   drawWidth: 0,
   drawHeight: 0,
@@ -48,11 +57,44 @@ const initialState: EditorState = {
   chooseDataUid: '',
   color: 'transparent',
   maxTrackWidth: 1000,
+  _history: [[]],
+  _historyIndex: 0,
+}
+
+function pushHistory(state: EditorState, snapshot: TrackLine[]) {
+  state._history = state._history.slice(0, state._historyIndex + 1)
+  state._history.push(JSON.parse(JSON.stringify(snapshot)))
+  if (state._history.length > MAX_HISTORY) {
+    state._history.shift()
+  } else {
+    state._historyIndex = state._history.length - 1
+  }
 }
 
 export const useEditorStore = create<EditorState & EditorActions>()(
-  immer((set) => ({
+  immer((set, get) => ({
     ...initialState,
+
+    canUndo: () => get()._historyIndex > 0,
+    canRedo: () => get()._historyIndex < get()._history.length - 1,
+
+    undo() {
+      set((state) => {
+        if (state._historyIndex <= 0) return
+        state._historyIndex--
+        state.track = JSON.parse(JSON.stringify(state._history[state._historyIndex]))
+        state.chooseDataUid = ''
+      })
+    },
+
+    redo() {
+      set((state) => {
+        if (state._historyIndex >= state._history.length - 1) return
+        state._historyIndex++
+        state.track = JSON.parse(JSON.stringify(state._history[state._historyIndex]))
+        state.chooseDataUid = ''
+      })
+    },
 
     dispatch(action: EditorAction) {
       set((state) => {
@@ -84,14 +126,13 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               trackLine = state.track[state.track.length - 1]
             }
             trackLine.lineList.push(el)
-            // Auto-select the newly added element
             state.chooseDataUid = uid
+            pushHistory(state, state.track)
             break
           }
 
           case 'removeTrackElement': {
             const removedUid = action.payload.uid
-            // Find next element to select
             const allEls = state.track.flatMap(l => l.lineList)
             const removedIdx = allEls.findIndex(el => el.uid === removedUid)
             const nextEl = allEls[removedIdx + 1] || allEls[removedIdx - 1] || null
@@ -100,6 +141,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               const idx = line.lineList.findIndex(el => el.uid === removedUid)
               if (idx !== -1) { line.lineList.splice(idx, 1); break }
             }
+            pushHistory(state, state.track)
             break
           }
 
@@ -109,6 +151,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               const el = line.lineList.find(e => e.uid === uid)
               if (el) { Object.assign(el, updates); break }
             }
+            pushHistory(state, state.track)
             break
           }
 
@@ -122,10 +165,13 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
           case 'updateTrack':
             state.track = action.payload
+            pushHistory(state, state.track)
             break
+
           case 'clearTrack':
             state.track = []
             state.chooseDataUid = ''
+            pushHistory(state, state.track)
             break
         }
       })

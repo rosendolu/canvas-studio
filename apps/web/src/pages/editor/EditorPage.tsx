@@ -5,7 +5,7 @@ import {
 } from '@mantine/core'
 import {
   IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop,
-  IconPointer,
+  IconPointer, IconArrowBackUp, IconArrowForwardUp,
 } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import TimelineRuler from '../../components/Timeline/TimelineRuler'
@@ -20,7 +20,7 @@ export function EditorPage() {
   const {
     track, drawWidth, drawHeight, aspectRatio,
     currentFrame, fps, trackScale, chooseDataUid, color,
-    dispatch,
+    dispatch, undo, redo, canUndo, canRedo,
   } = useEditorStore()
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
@@ -75,6 +75,24 @@ export function EditorPage() {
     setIsPlaying(false)
     dispatch({ type: 'setCurrentFrame', payload: 0 })
   }
+
+  // Keyboard undo/redo
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [undo, redo])
 
   const handleAspectRatioChange = useCallback((v: string) => {
     saveRatio(v)
@@ -197,6 +215,16 @@ export function EditorPage() {
         flexShrink: 0,
       }}>
         <Group p="xs" gap="xs" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
+          <Tooltip label={t('editor.undo')}>
+            <ActionIcon variant="subtle" size="sm" onClick={undo} disabled={!canUndo()}>
+              <IconArrowBackUp size={14} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label={t('editor.redo')}>
+            <ActionIcon variant="subtle" size="sm" onClick={redo} disabled={!canRedo()}>
+              <IconArrowForwardUp size={14} />
+            </ActionIcon>
+          </Tooltip>
           <Tooltip label={t('editor.stop')}>
             <ActionIcon variant="subtle" size="sm" onClick={handleStop}>
               <IconPlayerStop size={14} />

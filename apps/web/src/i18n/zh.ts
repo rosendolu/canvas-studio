@@ -28,6 +28,8 @@ const zh = {
       zoomOut: '缩小时间轴',
       play: '播放',
       stop: '停止',
+      undo: '撤销 (Ctrl+Z)',
+      redo: '重做 (Ctrl+Y)',
       aspectRatio: '画面比例',
       noTrack: '暂无轨道，请在左侧面板添加素材',
       deselect: '取消选中',
