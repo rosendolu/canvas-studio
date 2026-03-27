@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import {
   Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
   useMantineColorScheme,
@@ -11,7 +11,6 @@ import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
-import { ElementsContext } from '../../components/CanvasPlayer/context'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
@@ -19,6 +18,10 @@ export function ImageEditorPage() {
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
+
+  // stageRef lifted here so ExportButton (outside CanvasPlayer tree) can access it
+  const stageRef = useRef<any>(null)
+  const { exportPng } = useCanvasExport(stageRef)
 
   const { aspectRatio: savedRatio, setAspectRatio: saveRatio, ASPECT_RATIO_OPTIONS } = useCanvasConfig()
 
@@ -90,7 +93,11 @@ export function ImageEditorPage() {
             </ActionIcon>
           </Tooltip>
         )}
-        <ExportButton />
+        <Tooltip label={t('imageEditor.exportPng')}>
+          <ActionIcon variant="subtle" size="sm" onClick={() => exportPng('canvas-export.png')}>
+            <IconDownload size={14} />
+          </ActionIcon>
+        </Tooltip>
       </Group>
 
       {/* Main Area */}
@@ -112,6 +119,7 @@ export function ImageEditorPage() {
         {/* Center: Canvas */}
         <Box style={{ flex: 1, minWidth: 0, background: stageBg, position: 'relative' }}>
           <CanvasPlayer
+            stageRef={stageRef}
             elements={elements}
             activeUid={activeUid}
             bgColor={page.bgColor}
@@ -146,20 +154,5 @@ export function ImageEditorPage() {
         </Box>
       </Box>
     </Box>
-  )
-}
-
-/** Export button — reads stageRef from ElementsContext */
-function ExportButton() {
-  const { t } = useTranslation()
-  const { stageRef } = useContext(ElementsContext)
-  const { exportPng } = useCanvasExport(stageRef)
-
-  return (
-    <Tooltip label={t('imageEditor.exportPng')}>
-      <ActionIcon variant="subtle" size="sm" onClick={() => exportPng('canvas-export.png')}>
-        <IconDownload size={14} />
-      </ActionIcon>
-    </Tooltip>
   )
 }

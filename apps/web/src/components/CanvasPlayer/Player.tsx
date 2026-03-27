@@ -21,6 +21,8 @@ interface PlayerProps {
   onSyncPos: (uid: string, updates: Partial<CanvasElement>) => void
   onSetActive: (type: string, uid: string) => void
   onDeleteElement?: (uid: string) => void
+  /** External stageRef to forward the internal Konva Stage ref for export. */
+  externalStageRef?: React.RefObject<any>
 }
 
 export default function Player({
@@ -32,6 +34,7 @@ export default function Player({
   onSyncPos,
   onSetActive,
   onDeleteElement,
+  externalStageRef,
 }: PlayerProps) {
   const { spinning } = useContext(PlayerContext)
   const { colorScheme } = useMantineColorScheme()
@@ -41,6 +44,13 @@ export default function Player({
   const transformRectRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [focusUid, setFocusUid] = useState('')
+
+  // Forward stageRef to external ref if provided (for export)
+  useEffect(() => {
+    if (externalStageRef) {
+      (externalStageRef as React.MutableRefObject<any>).current = stageRef.current
+    }
+  })
 
   // ── Keyboard: Delete / Backspace ──
   useEffect(() => {
