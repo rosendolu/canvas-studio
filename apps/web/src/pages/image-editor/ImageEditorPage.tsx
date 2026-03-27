@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import {
   Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
-  useMantineColorScheme, Tabs,
+  useMantineColorScheme,
 } from '@mantine/core'
 import { IconPointer, IconDownload, IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
@@ -12,10 +12,6 @@ import { useTranslation } from 'react-i18next'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
 import { LayerPanel } from '../../components/LayerPanel/LayerPanel'
-import { AssetLibraryPanel } from '../../components/Library/AssetLibraryPanel'
-import { TemplatePanel } from '../../components/Library/TemplatePanel'
-import { BrandKitPanel } from '../../components/Library/BrandKitPanel'
-import type { ApiBrandKit } from '../../api/libraryApi'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
@@ -97,31 +93,6 @@ export function ImageEditorPage() {
     dispatch({ type: 'removeElement', payload: uid })
   }, [dispatch])
 
-  // Library: insert asset as element
-  const handleInsertAsset = useCallback((el: CanvasElement) => {
-    dispatch({ type: 'addElement', payload: el })
-  }, [dispatch])
-
-  // Library: apply scene template (from TemplatePanel)
-  const handleApplySceneFromLib = useCallback((
-    els: CanvasElement[], ratio: string, bg: string, _mode: 'replace' | 'merge'
-  ) => {
-    dispatch({ type: 'activeElement', payload: '' })
-    dispatch({ type: 'setAspectRatio', payload: ratio })
-    saveRatio(ratio)
-    dispatch({ type: 'updateElements', payload: els })
-  }, [dispatch, saveRatio])
-
-  // Library: insert overlay template elements
-  const handleInsertOverlay = useCallback((els: CanvasElement[]) => {
-    els.forEach(el => dispatch({ type: 'addElement', payload: el }))
-  }, [dispatch])
-
-  // Brand kit apply: update text style defaults (notification only — no forced rewrite)
-  const handleApplyBrandKit = useCallback((_kit: ApiBrandKit) => {
-    // Brand kit is available via context/store in future; for now just a no-op placeholder
-  }, [])
-
   const activeElement = elements.find(el => el.uid === activeUid)
 
   return (
@@ -174,46 +145,14 @@ export function ImageEditorPage() {
           width: 230,
           borderRight: '1px solid var(--mantine-color-default-border)',
           background: 'var(--mantine-color-body)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
+          overflowY: 'auto',
         }}>
-          <Tabs defaultValue="elements" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Tabs.List style={{ flexShrink: 0 }}>
-              <Tabs.Tab value="elements" style={{ fontSize: 11 }}>{t('nav.elements')}</Tabs.Tab>
-              <Tabs.Tab value="library" style={{ fontSize: 11 }}>{t('library.tab')}</Tabs.Tab>
-              <Tabs.Tab value="templates" style={{ fontSize: 11 }}>{t('templates.tab')}</Tabs.Tab>
-              <Tabs.Tab value="brandkit" style={{ fontSize: 11 }}>{t('brandkit.tab')}</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="elements" style={{ flex: 1, overflow: 'hidden' }}>
-              <ElementMenu
-                onAddElement={handleAddElement}
-                onApplyTemplate={handleApplyTemplate}
-                bgColor={page.bgColor}
-                onBgColorChange={color => dispatch({ type: 'setBgColor', payload: color })}
-              />
-            </Tabs.Panel>
-            <Tabs.Panel value="library" style={{ flex: 1, overflow: 'hidden' }}>
-              <AssetLibraryPanel
-                drawWidth={drawWidth}
-                drawHeight={drawHeight}
-                onInsert={handleInsertAsset}
-              />
-            </Tabs.Panel>
-            <Tabs.Panel value="templates" style={{ flex: 1, overflow: 'hidden' }}>
-              <TemplatePanel
-                elements={elements}
-                aspectRatio={aspectRatio}
-                bgColor={page.bgColor}
-                activeUids={activeUid ? [activeUid] : []}
-                onApplyScene={handleApplySceneFromLib}
-                onInsertOverlay={handleInsertOverlay}
-              />
-            </Tabs.Panel>
-            <Tabs.Panel value="brandkit" style={{ flex: 1, overflow: 'auto' }}>
-              <BrandKitPanel onApply={handleApplyBrandKit} />
-            </Tabs.Panel>
-          </Tabs>
+          <ElementMenu
+            onAddElement={handleAddElement}
+            onApplyTemplate={handleApplyTemplate}
+            bgColor={page.bgColor}
+            onBgColorChange={color => dispatch({ type: 'setBgColor', payload: color })}
+          />
         </Box>
 
         {/* Center: Canvas */}
