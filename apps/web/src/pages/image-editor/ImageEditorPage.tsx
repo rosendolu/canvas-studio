@@ -63,6 +63,7 @@ export function ImageEditorPage() {
 
   const handleApplyTemplate = useCallback((templateElements: CanvasElement[], aspectRatio: string) => {
     // Clear current canvas and apply template elements + aspect ratio
+    dispatch({ type: 'activeElement', payload: '' })
     dispatch({ type: 'setAspectRatio', payload: aspectRatio })
     saveRatio(aspectRatio)
     // Replace all elements with template elements
