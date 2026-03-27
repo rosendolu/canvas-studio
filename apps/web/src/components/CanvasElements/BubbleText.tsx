@@ -32,6 +32,7 @@ export function BubbleText({ item, draggable = true }: BubbleTextProps) {
       x={item.left}
       y={item.top}
       visible={item.visible}
+      opacity={item.opacity ?? 1}
       scaleX={item.scaleX}
       scaleY={item.scaleY}
       onMouseDown={() => setActiveUid(item.type, item.uid)}

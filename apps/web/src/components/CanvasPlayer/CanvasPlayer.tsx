@@ -19,6 +19,8 @@ interface CanvasPlayerProps {
   onSetCanvasSize: (w: number, h: number) => void
   onUpdateElements: (elements: CanvasElement[], drawWidth?: number, drawHeight?: number) => void
   onDeleteElement?: (uid: string) => void
+  /** Optional external ref to the Konva Stage (for export). If provided, Player will forward its internal stageRef. */
+  stageRef?: React.RefObject<any>
 }
 
 /**
@@ -43,7 +45,7 @@ function checkerboardBg(isDark: boolean): React.CSSProperties {
 
 export default function CanvasPlayer({
   elements, activeUid, bgColor, aspectRatio = '16:9',
-  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements, onDeleteElement,
+  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements, onDeleteElement, stageRef: externalStageRef,
 }: CanvasPlayerProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ width: 0, height: 0 })
@@ -157,6 +159,7 @@ export default function CanvasPlayer({
               onSyncPos={onSyncPos}
               onSetActive={onSetActive}
               onDeleteElement={onDeleteElement}
+              externalStageRef={externalStageRef}
             />
           </div>
         )}

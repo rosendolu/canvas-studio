@@ -27,6 +27,7 @@ export function StaticImage({ item, draggable = true }: StaticImageProps) {
   return (
     <Image
       visible={item.visible}
+      opacity={item.opacity ?? 1}
       id={item.uid}
       name={item.uid + item.type}
       draggable={draggable}

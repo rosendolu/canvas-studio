@@ -49,6 +49,7 @@ function makeEl(overrides: Partial<CanvasElement>): Omit<CanvasElement, 'uid'> {
         offsetX: 0,
         offsetY: 0,
         visible: true,
+        opacity: 1,
         ...overrides,
     };
 }
