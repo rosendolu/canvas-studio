@@ -4,7 +4,7 @@ import { BrandKitService } from './brandkit.service'
 import { CreateBrandKitDto, UpdateBrandKitDto } from './brandkit.dto'
 
 @ApiTags('brand-kits')
-@Controller('api/brand-kits')
+@Controller('brand-kits')
 export class BrandKitController {
   constructor(private readonly svc: BrandKitService) {}
 

@@ -21,7 +21,8 @@ export class AssetStorageService {
 
   async put(buffer: Buffer, originalName: string, mimeType: string): Promise<StoredFile> {
     const checksum = crypto.createHash('sha256').update(buffer).digest('hex')
-    const ext = path.extname(originalName) || ''
+    // Only keep alphanumeric + dash/underscore/dot from original extension; no path separators
+    const ext = (path.extname(originalName) || '').replace(/[^a-zA-Z0-9.]/g, '').slice(0, 10)
     const storageKey = `${Date.now()}-${checksum.slice(0, 8)}${ext}`
     const fullPath = path.join(this.uploadDir, storageKey)
     await fs.mkdir(this.uploadDir, { recursive: true })
@@ -36,11 +37,15 @@ export class AssetStorageService {
   }
 
   async delete(storageKey: string): Promise<void> {
-    const fullPath = path.join(this.uploadDir, storageKey)
+    // Guard against path traversal
+    const safe = path.basename(storageKey)
+    const fullPath = path.join(this.uploadDir, safe)
     await fs.unlink(fullPath).catch(() => { /* ignore missing file */ })
   }
 
   absolutePath(storageKey: string): string {
-    return path.join(this.uploadDir, storageKey)
+    // Guard against path traversal: only allow the basename
+    const safe = path.basename(storageKey)
+    return path.join(this.uploadDir, safe)
   }
 }

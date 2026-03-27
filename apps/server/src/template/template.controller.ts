@@ -6,7 +6,7 @@ import { CreateTemplateDto, UpdateTemplateDto, ListTemplatesDto } from './templa
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 
 @ApiTags('templates')
-@Controller('api/templates')
+@Controller('templates')
 export class TemplateController {
   constructor(private readonly svc: TemplateService) {}
 

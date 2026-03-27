@@ -13,7 +13,10 @@ export class TemplateService {
   async list(query: ListTemplatesDto): Promise<TemplateDocument[]> {
     const filter: Record<string, any> = {}
     if (query.type) filter.type = query.type
-    if (query.tags?.length) filter.tags = { $in: query.tags }
+    if (query.tags) {
+      const tagsArr = Array.isArray(query.tags) ? query.tags : (query.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+      if (tagsArr.length) filter.tags = { $in: tagsArr }
+    }
     if (query.q) filter.$text = { $search: query.q }
     return this.templateModel.find(filter).sort({ createdAt: -1 }).lean().exec() as any
   }

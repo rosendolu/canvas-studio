@@ -10,7 +10,7 @@ import { AssetService } from './asset.service'
 import { UpdateAssetDto, ListAssetsDto } from './asset.dto'
 
 @ApiTags('assets')
-@Controller('api/assets')
+@Controller('assets')
 export class AssetController {
   constructor(private readonly svc: AssetService) {}
 
@@ -26,6 +26,10 @@ export class AssetController {
     @Param('storageKey') storageKey: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
+    // Validate storageKey is a basename-only identifier (no path separators)
+    if (!storageKey || storageKey.includes('/') || storageKey.includes('..') || storageKey.includes('\\')) {
+      throw new BadRequestException('Invalid storageKey')
+    }
     const absPath = this.svc.storageAbsPath(storageKey)
     const stream = createReadStream(absPath)
     return new StreamableFile(stream)

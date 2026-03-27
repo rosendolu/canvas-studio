@@ -32,7 +32,10 @@ export class AssetService {
   async list(query: ListAssetsDto): Promise<AssetDocument[]> {
     const filter: Record<string, any> = {}
     if (query.assetType) filter.assetType = query.assetType
-    if (query.tags?.length) filter.tags = { $in: query.tags }
+    if (query.tags) {
+      const tagsArr = Array.isArray(query.tags) ? query.tags : (query.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+      if (tagsArr.length) filter.tags = { $in: tagsArr }
+    }
     if (query.q) filter.$text = { $search: query.q }
     return this.assetModel.find(filter).sort({ createdAt: -1 }).lean().exec() as any
   }

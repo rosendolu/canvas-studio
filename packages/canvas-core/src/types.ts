@@ -15,7 +15,6 @@ export type ElementType =
   | 'apng'                 // APNG 动态贴图
   | 'product'              // 商品图（直播间专用）
   | 'solid-color'          // 纯色背景
-  | string                 // extensible for future types
 
 // ---------------- Element Mask (Avatar circle clip) ----------------
 
