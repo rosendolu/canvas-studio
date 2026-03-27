@@ -1,6 +1,12 @@
-import { useCallback, useEffect } from 'react'
-import { Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, useMantineColorScheme } from '@mantine/core'
-import { IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
+  useMantineColorScheme,
+} from '@mantine/core'
+import {
+  IconZoomIn, IconZoomOut, IconPlayerPlay, IconPlayerStop,
+  IconPointer,
+} from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import TimelineRuler from '../../components/Timeline/TimelineRuler'
 import { useEditorStore } from '../../store/editorStore'
@@ -8,6 +14,7 @@ import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
+import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
 
 export function EditorPage() {
   const {
@@ -19,16 +26,49 @@ export function EditorPage() {
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
 
-  // Persist aspect ratio in localStorage via Mantine hook
   const { aspectRatio: savedRatio, setAspectRatio: saveRatio, ASPECT_RATIO_OPTIONS } = useCanvasConfig()
 
-  // On mount: restore saved ratio into store
+  // Playback state
+  const [isPlaying, setIsPlaying] = useState(false)
+  const playFrameRef = useRef<number | null>(null)
+  const lastTimeRef = useRef<number>(0)
+
+  // On mount: restore saved ratio
   useEffect(() => {
     if (savedRatio && savedRatio !== aspectRatio) {
       dispatch({ type: 'setAspectRatio', payload: savedRatio })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Playback animation loop
+  useEffect(() => {
+    if (!isPlaying) {
+      if (playFrameRef.current != null) cancelAnimationFrame(playFrameRef.current)
+      return
+    }
+    lastTimeRef.current = performance.now()
+    const msPerFrame = 1000 / fps
+    function tick(now: number) {
+      const elapsed = now - lastTimeRef.current
+      if (elapsed >= msPerFrame) {
+        lastTimeRef.current = now - (elapsed % msPerFrame)
+        dispatch({ type: 'setCurrentFrame', payload: currentFrame + 1 })
+      }
+      playFrameRef.current = requestAnimationFrame(tick)
+    }
+    playFrameRef.current = requestAnimationFrame(tick)
+    return () => {
+      if (playFrameRef.current != null) cancelAnimationFrame(playFrameRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying, fps])
+
+  const handlePlay = () => setIsPlaying(v => !v)
+  const handleStop = () => {
+    setIsPlaying(false)
+    dispatch({ type: 'setCurrentFrame', payload: 0 })
+  }
 
   const handleAspectRatioChange = useCallback((v: string) => {
     saveRatio(v)
@@ -43,7 +83,7 @@ export function EditorPage() {
     dispatch({ type: 'updateElementPos', payload: { uid, updates } })
   }, [dispatch])
 
-  const handleSetActive = useCallback((type: string, uid: string) => {
+  const handleSetActive = useCallback((_type: string, uid: string) => {
     dispatch({ type: 'setActiveUid', payload: uid })
   }, [dispatch])
 
@@ -71,11 +111,15 @@ export function EditorPage() {
     dispatch({ type: 'removeTrackElement', payload: { uid } })
   }, [dispatch])
 
+  const activeElement = track
+    .flatMap(t => t.lineList)
+    .find(el => el.uid === chooseDataUid)
+
   const timelineUserConfig = { start: 0, step: fps, scale: trackScale }
 
   return (
     <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Main area: left panel + canvas */}
+      {/* Main area */}
       <Box style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {/* Left: Assets Panel */}
         <Box style={{
@@ -91,7 +135,7 @@ export function EditorPage() {
           />
         </Box>
 
-        {/* Center: Canvas stage — adapts to theme */}
+        {/* Center: Canvas */}
         <Box style={{ flex: 1, minWidth: 0, background: stageBg, position: 'relative' }}>
           <CanvasPlayer
             elements={elements as CanvasElement[]}
@@ -107,6 +151,25 @@ export function EditorPage() {
             onDeleteElement={handleDeleteElement}
           />
         </Box>
+
+        {/* Right: Properties */}
+        <Box style={{
+          width: 220,
+          borderLeft: '1px solid var(--mantine-color-default-border)',
+          background: 'var(--mantine-color-body)',
+          overflowY: 'auto',
+          flexShrink: 0,
+        }}>
+          <PropertyPanel
+            activeElement={activeElement}
+            onUpdate={updates => {
+              if (chooseDataUid) dispatch({ type: 'updateElementPos', payload: { uid: chooseDataUid, updates } })
+            }}
+            onDelete={() => {
+              if (chooseDataUid) dispatch({ type: 'removeTrackElement', payload: { uid: chooseDataUid } })
+            }}
+          />
+        </Box>
       </Box>
 
       {/* Timeline */}
@@ -118,16 +181,32 @@ export function EditorPage() {
       }}>
         <Group p="xs" gap="xs" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
           <Tooltip label={t('editor.stop')}>
-            <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setCurrentFrame', payload: 0 })}>
+            <ActionIcon variant="subtle" size="sm" onClick={handleStop}>
               <IconPlayerStop size={14} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label={t('editor.play')}>
-            <ActionIcon variant="subtle" size="sm">
+          <Tooltip label={isPlaying ? t('editor.stop') : t('editor.play')}>
+            <ActionIcon
+              variant={isPlaying ? 'filled' : 'subtle'}
+              color={isPlaying ? 'blue' : undefined}
+              size="sm"
+              onClick={handlePlay}
+            >
               <IconPlayerPlay size={14} />
             </ActionIcon>
           </Tooltip>
+          <Text size="xs" c="dimmed">{currentFrame}f</Text>
+
+          {chooseDataUid && (
+            <Tooltip label={t('editor.deselect')}>
+              <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setActiveUid', payload: '' })}>
+                <IconPointer size={14} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+
           <Box style={{ flex: 1 }} />
+          <Text size="xs" c="dimmed">{t('editor.elementCount', { count: elements.length })}</Text>
           <Tooltip label={t('editor.zoomOut')}>
             <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'setTrackScale', payload: Math.max(0, trackScale - 10) })}>
               <IconZoomOut size={14} />
