@@ -67,6 +67,9 @@ export interface CanvasElement {
   // visibility
   visible: boolean
 
+  // opacity (0–1, default 1)
+  opacity?: number
+
   // appearance
   bgColor?: string
   mask?: ElementMask
