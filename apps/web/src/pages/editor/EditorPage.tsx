@@ -32,6 +32,12 @@ export function EditorPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const playFrameRef = useRef<number | null>(null)
   const lastTimeRef = useRef<number>(0)
+  const currentFrameRef = useRef<number>(currentFrame)
+
+  // Keep ref in sync with store value
+  useEffect(() => {
+    currentFrameRef.current = currentFrame
+  }, [currentFrame])
 
   // On mount: restore saved ratio
   useEffect(() => {
@@ -53,7 +59,7 @@ export function EditorPage() {
       const elapsed = now - lastTimeRef.current
       if (elapsed >= msPerFrame) {
         lastTimeRef.current = now - (elapsed % msPerFrame)
-        dispatch({ type: 'setCurrentFrame', payload: currentFrame + 1 })
+        dispatch({ type: 'setCurrentFrame', payload: currentFrameRef.current + 1 })
       }
       playFrameRef.current = requestAnimationFrame(tick)
     }
