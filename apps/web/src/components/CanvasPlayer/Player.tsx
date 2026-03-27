@@ -50,7 +50,8 @@ export default function Player({
     if (externalStageRef) {
       (externalStageRef as React.MutableRefObject<any>).current = stageRef.current
     }
-  })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Keyboard: Delete / Backspace ──
   useEffect(() => {
