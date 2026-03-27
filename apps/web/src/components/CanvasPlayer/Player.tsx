@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
 import { useMantineColorScheme } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
