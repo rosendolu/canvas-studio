@@ -61,6 +61,15 @@ export function ImageEditorPage() {
     dispatch({ type: 'addElement', payload: el as CanvasElement })
   }, [dispatch])
 
+  const handleApplyTemplate = useCallback((templateElements: CanvasElement[], aspectRatio: string) => {
+    // Clear current canvas and apply template elements + aspect ratio
+    dispatch({ type: 'activeElement', payload: '' })
+    dispatch({ type: 'setAspectRatio', payload: aspectRatio })
+    saveRatio(aspectRatio)
+    // Replace all elements with template elements
+    dispatch({ type: 'updateElements', payload: templateElements })
+  }, [dispatch, saveRatio])
+
   const handleDeleteElement = useCallback((uid: string) => {
     dispatch({ type: 'removeElement', payload: uid })
   }, [dispatch])
@@ -111,6 +120,7 @@ export function ImageEditorPage() {
         }}>
           <ElementMenu
             onAddElement={handleAddElement}
+            onApplyTemplate={handleApplyTemplate}
             bgColor={page.bgColor}
             onBgColorChange={color => dispatch({ type: 'setBgColor', payload: color })}
           />

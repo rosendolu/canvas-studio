@@ -98,6 +98,11 @@ const zh = {
     canvas: {
       emptyHint: '从左侧面板添加素材',
     },
+    templates: {
+      tab: '模板',
+      title: '预设模板',
+      apply: '应用模板',
+    },
   },
 }
 
