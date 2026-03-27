@@ -116,7 +116,7 @@ export function EditorPage() {
   const handleApplyTemplate = useCallback((templateElements: CanvasElement[], aspectRatio: string) => {
     saveRatio(aspectRatio)
     dispatch({ type: 'setAspectRatio', payload: aspectRatio })
-    // Add all template elements as track elements (clears existing track first)
+    dispatch({ type: 'setActiveUid', payload: '' })
     dispatch({ type: 'clearTrack' })
     templateElements.forEach(el => {
       dispatch({ type: 'addTrackElement', payload: { element: el } })
