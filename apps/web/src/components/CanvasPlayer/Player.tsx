@@ -46,12 +46,12 @@ export default function Player({
   const [focusUid, setFocusUid] = useState('')
 
   // Forward stageRef to external ref if provided (for export)
+  // deps: [externalStageRef] ensures forwarding is re-applied if the prop changes
   useLayoutEffect(() => {
     if (externalStageRef) {
       (externalStageRef as React.MutableRefObject<any>).current = stageRef.current
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [externalStageRef])
 
   // ── Keyboard: Delete / Backspace ──
   useEffect(() => {
