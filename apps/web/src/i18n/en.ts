@@ -97,6 +97,17 @@ const en = {
       customUrlPlaceholder: 'Paste image URL...',
       loadingAssets: 'Loading...',
     },
+    layers: {
+      title: 'Layers',
+      empty: 'No elements yet',
+      moveUp: 'Move Up',
+      moveDown: 'Move Down',
+      show: 'Show',
+      hide: 'Hide',
+      lock: 'Lock',
+      unlock: 'Unlock',
+      delete: 'Delete',
+    },
     canvas: {
       emptyHint: 'Add assets from the left panel',
     },

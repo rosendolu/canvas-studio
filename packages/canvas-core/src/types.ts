@@ -70,6 +70,9 @@ export interface CanvasElement {
   // opacity (0–1, default 1)
   opacity?: number
 
+  // locked: disables dragging/transform when true
+  locked?: boolean
+
   // appearance
   bgColor?: string
   mask?: ElementMask
