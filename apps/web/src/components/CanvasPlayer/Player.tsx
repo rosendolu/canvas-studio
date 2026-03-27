@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Text, Transformer } from 'react-konva'
 import { useMantineColorScheme } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
@@ -46,7 +46,7 @@ export default function Player({
   const [focusUid, setFocusUid] = useState('')
 
   // Forward stageRef to external ref if provided (for export)
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (externalStageRef) {
       (externalStageRef as React.MutableRefObject<any>).current = stageRef.current
     }
