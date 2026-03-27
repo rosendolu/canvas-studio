@@ -54,8 +54,7 @@ export function fitCanvasResize(el: CanvasElement, ratio: number) {
   el.scaleY *= ratio
   el.left *= ratio
   el.top *= ratio
-  el.offsetX *= ratio
-  el.offsetY *= ratio
+  // offsetX/offsetY are always 0 after init — do not scale
 
   if (el.mask) {
     el.mask.scaleX *= ratio
@@ -92,25 +91,15 @@ export function changeOrientation(
     el.width = ratio * el.height
 
     if (el.mask) {
-      el.mask.width = el.mask.width * el.mask.scaleX
-      el.mask.height = el.mask.height * el.mask.scaleY
-      el.mask.scaleX = 1
-      el.mask.scaleY = 1
-      const maskRatio = el.mask.width / el.mask.height
-      el.mask.height = (el.mask.height / prevCanvasHeight) * canvasHeight
-      el.mask.width = maskRatio * el.mask.height
+      el.mask.left = ((el.mask.left + el.mask.offsetX) / prevCanvasWidth) * canvasWidth
+      el.mask.top = ((el.mask.top + el.mask.offsetY) / prevCanvasHeight) * canvasHeight
+      el.mask.offsetX = 0
+      el.mask.offsetY = 0
     }
   }
 
-  el.left = ((el.left + el.offsetX + prevWidth / 2) / prevCanvasWidth) * canvasWidth - el.width / 2
-  el.top = ((el.top + el.offsetY + prevHeight / 2) / prevCanvasHeight) * canvasHeight - el.height / 2
-
-  if (el.mask) {
-    el.mask.left = ((el.mask.left + el.offsetX + el.mask.offsetX) / prevCanvasWidth) * canvasWidth
-    el.mask.top = ((el.mask.top + el.offsetY + el.mask.offsetX) / prevCanvasHeight) * canvasHeight
-    el.mask.offsetX = 0
-    el.mask.offsetY = 0
-  }
+  el.left = ((el.left + prevWidth / 2) / prevCanvasWidth) * canvasWidth - el.width / 2
+  el.top = ((el.top + prevHeight / 2) / prevCanvasHeight) * canvasHeight - el.height / 2
 
   el.offsetX = 0
   el.offsetY = 0

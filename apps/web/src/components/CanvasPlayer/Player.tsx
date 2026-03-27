@@ -82,9 +82,9 @@ export default function Player({
         updates.left = left
         updates.top = top
       } else {
-        // non-bubbleText group (avatar): store as offsetX/offsetY
-        updates.offsetX = left || 0
-        updates.offsetY = top || 0
+        // avatar group drag: store as left/top (consistent with AvatarElement Group x/y binding)
+        updates.left = left
+        updates.top = top
       }
       if (e.type === 'transformend') {
         updates.scaleX = scaleX || 1
@@ -118,17 +118,16 @@ export default function Player({
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
 
-    let w = active?.width(),
-        h = active?.height(),
-        scale = active?.scale(),
-        position = active?.position()
-
     if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
       const activeGroup = stageRef.current?.findOne(`#${activeUid}$$group`)
       active = activeGroup
-      scale = active?.scale()
-      position = active?.position()
     }
+
+    // Capture dimensions AFTER final active node resolution
+    const w = active?.width()
+    const h = active?.height()
+    const scale = active?.scale()
+    const position = active?.position()
 
     if (active) {
       const shape = transformRectRef.current
@@ -280,7 +279,7 @@ function RenderElement({ item }: { item: CanvasElement }) {
   if (item.src?.endsWith?.('.apng')) return <ApngCanvas item={item} />
   if (item.type === 'avatar') return <AvatarElement item={item} />
   if (item.type === 'bubbleText') return <BubbleText item={item} />
-  if (/background|sticker|product/.test(item.type)) return <StaticImage item={item} />
+  if (/background|sticker|product|picture/.test(item.type)) return <StaticImage item={item} />
   return <Text fill="red" text="未知元素类型" />
 }
 
