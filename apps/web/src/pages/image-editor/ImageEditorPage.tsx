@@ -3,7 +3,7 @@ import {
   Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
   useMantineColorScheme,
 } from '@mantine/core'
-import { IconPointer, IconDownload } from '@tabler/icons-react'
+import { IconPointer, IconDownload, IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useLiveStore } from '../../store/liveStore'
@@ -14,7 +14,7 @@ import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
-  const { pages, drawWidth, drawHeight, aspectRatio, dispatch } = useLiveStore()
+  const { pages, drawWidth, drawHeight, aspectRatio, dispatch, undo, redo, canUndo, canRedo } = useLiveStore()
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
@@ -31,6 +31,24 @@ export function ImageEditorPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Keyboard undo/redo
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [undo, redo])
 
   const handleAspectRatioChange = useCallback((v: string) => {
     saveRatio(v)
@@ -95,6 +113,16 @@ export function ImageEditorPage() {
         />
         <Box style={{ flex: 1 }} />
         <Text size="xs" c="dimmed">{t('imageEditor.elementCount', { count: elements.length })}</Text>
+        <Tooltip label={t('editor.undo')}>
+          <ActionIcon variant="subtle" size="sm" onClick={undo} disabled={!canUndo()}>
+            <IconArrowBackUp size={14} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label={t('editor.redo')}>
+          <ActionIcon variant="subtle" size="sm" onClick={redo} disabled={!canRedo()}>
+            <IconArrowForwardUp size={14} />
+          </ActionIcon>
+        </Tooltip>
         {activeUid && (
           <Tooltip label={t('imageEditor.deselect')}>
             <ActionIcon variant="subtle" size="sm" onClick={() => dispatch({ type: 'activeElement', payload: '' })}>

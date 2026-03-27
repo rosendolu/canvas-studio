@@ -28,6 +28,8 @@ const en = {
       zoomOut: 'Zoom Out Timeline',
       play: 'Play',
       stop: 'Stop',
+      undo: 'Undo (Ctrl+Z)',
+      redo: 'Redo (Ctrl+Y)',
       aspectRatio: 'Aspect Ratio',
       noTrack: 'No tracks yet. Add assets from the left panel.',
       deselect: 'Deselect',
