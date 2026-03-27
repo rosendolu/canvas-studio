@@ -55,18 +55,23 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Nav links */}
             <Group gap='xs' ml='md'>
-              {navLinks.map(link => (
-                <Anchor
-                  key={link.path}
-                  size='sm'
-                  fw={location.pathname.startsWith(link.path) ? 700 : 400}
-                  c={location.pathname.startsWith(link.path) ? 'blue' : 'dimmed'}
-                  onClick={() => navigate(link.path)}
-                  style={{ cursor: 'pointer', textDecoration: 'none' }}
-                >
-                  {link.label}
-                </Anchor>
-              ))}
+              {navLinks.map(link => {
+                const isActive = link.path === '/editor'
+                  ? location.pathname === '/editor' || location.pathname.startsWith('/editor/')
+                  : location.pathname.startsWith(link.path)
+                return (
+                  <Anchor
+                    key={link.path}
+                    size='sm'
+                    fw={isActive ? 700 : 400}
+                    c={isActive ? 'blue' : 'dimmed'}
+                    onClick={() => navigate(link.path)}
+                    style={{ cursor: 'pointer', textDecoration: 'none' }}
+                  >
+                    {link.label}
+                  </Anchor>
+                )
+              })}
             </Group>
           </Group>
 
