@@ -1,28 +1,28 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
-  useMantineColorScheme, Tabs,
+  useMantineColorScheme,
 } from '@mantine/core'
 import { IconPointer, IconDownload, IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react'
 import CanvasPlayer from '../../components/CanvasPlayer/CanvasPlayer'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useLiveStore } from '../../store/liveStore'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
+import { alignElements } from '@canvas-studio/canvas-core'
+import type { AlignMode, AlignBasis } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
 import { LayerPanel } from '../../components/LayerPanel/LayerPanel'
-import { AssetLibraryPanel } from '../../components/Library/AssetLibraryPanel'
-import { TemplatePanel } from '../../components/Library/TemplatePanel'
-import { BrandKitPanel } from '../../components/Library/BrandKitPanel'
-import type { ApiBrandKit } from '../../api/libraryApi'
+import { AlignToolbar } from '../../components/AlignToolbar/AlignToolbar'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
-  const { pages, drawWidth, drawHeight, aspectRatio, dispatch, undo, redo, canUndo, canRedo } = useLiveStore()
+  const { pages, drawWidth, drawHeight, aspectRatio, dispatch, undo, redo, canUndo, canRedo, selectedUids } = useLiveStore()
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
+  const [alignBasis, setAlignBasis] = useState<AlignBasis>('canvas')
 
   // stageRef lifted here so ExportButton (outside CanvasPlayer tree) can access it
   const stageRef = useRef<any>(null)
@@ -97,6 +97,16 @@ export function ImageEditorPage() {
     dispatch({ type: 'removeElement', payload: uid })
   }, [dispatch])
 
+  // Align selected elements and push to store
+  const handleAlign = useCallback((mode: AlignMode) => {
+    const uids = selectedUids.length >= 1 ? selectedUids : (activeUid ? [activeUid] : [])
+    if (!uids.length) return
+    const aligned = alignElements(elements, uids, mode, {
+      canvasWidth: drawWidth, canvasHeight: drawHeight, basis: alignBasis,
+    })
+    dispatch({ type: 'updateElements', payload: aligned })
+  }, [selectedUids, activeUid, elements, drawWidth, drawHeight, alignBasis, dispatch])
+
   // Library: insert asset as element
   const handleInsertAsset = useCallback((el: CanvasElement) => {
     dispatch({ type: 'addElement', payload: el })
@@ -132,6 +142,7 @@ export function ImageEditorPage() {
         style={{
           borderBottom: '1px solid var(--mantine-color-default-border)',
           background: 'var(--mantine-color-body)',
+          flexWrap: 'wrap',
         }}
       >
         <Text size="sm" fw={500}>🖼️ {t('nav.imageEditor')}</Text>
@@ -141,6 +152,15 @@ export function ImageEditorPage() {
           onChange={handleAspectRatioChange}
           data={ASPECT_RATIO_OPTIONS}
         />
+        {/* Align toolbar — shown when ≥1 element selected */}
+        {(selectedUids.length >= 1 || activeUid) && (
+          <AlignToolbar
+            selectedCount={selectedUids.length || (activeUid ? 1 : 0)}
+            basis={alignBasis}
+            onBasisChange={setAlignBasis}
+            onAlign={handleAlign}
+          />
+        )}
         <Box style={{ flex: 1 }} />
         <Text size="xs" c="dimmed">{t('imageEditor.elementCount', { count: elements.length })}</Text>
         <Tooltip label={t('editor.undo')}>
