@@ -153,6 +153,18 @@ const zh = {
       save: '保存',
       cancel: '取消',
     },
+    align: {
+      left: '左对齐',
+      centerH: '水平居中',
+      right: '右对齐',
+      top: '顶对齐',
+      centerV: '垂直居中',
+      bottom: '底对齐',
+      distributeH: '水平等间距',
+      distributeV: '垂直等间距',
+      basisCanvas: '画布',
+      basisSelection: '选区',
+    },
   },
 }
 

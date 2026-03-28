@@ -153,6 +153,18 @@ const en = {
       save: 'Save',
       cancel: 'Cancel',
     },
+    align: {
+      left: 'Align Left',
+      centerH: 'Center Horizontally',
+      right: 'Align Right',
+      top: 'Align Top',
+      centerV: 'Center Vertically',
+      bottom: 'Align Bottom',
+      distributeH: 'Distribute Horizontally',
+      distributeV: 'Distribute Vertically',
+      basisCanvas: 'Canvas',
+      basisSelection: 'Selection',
+    },
   },
 }
 

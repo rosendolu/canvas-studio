@@ -12,6 +12,8 @@ export interface LiveState {
   drawHeight: number
   aspectRatio: string
   pages: PageState[]
+  /** Multi-select UIDs (superset of activeElementsUid) */
+  selectedUids: string[]
   // Undo/redo history — stores snapshots of pages[0].elements
   _history: CanvasElement[][]
   _historyIndex: number
@@ -33,6 +35,7 @@ export type LiveAction =
   | { type: 'updateElementsPos'; payload: { elements: CanvasElement[]; drawWidth?: number; drawHeight?: number } }
   | { type: 'updateElementAttr'; payload: { uid: string; updates: Partial<CanvasElement> } }
   | { type: 'activeElement'; payload: string }
+  | { type: 'setSelectedUids'; payload: string[] }
   | { type: 'setBgColor'; payload: string }
   | { type: 'updateElements'; payload: CanvasElement[] }
 
@@ -52,6 +55,7 @@ const initialState: LiveState = {
   drawHeight: 0,
   aspectRatio: '9:16',
   pages: [createDefaultPage()],
+  selectedUids: [],
   _history: [[]],
   _historyIndex: 0,
 }
@@ -149,6 +153,14 @@ export const useLiveStore = create<LiveState & LiveActions>()(
 
           case 'activeElement':
             page.activeElementsUid = action.payload
+            // single-select resets multi-selection
+            if (action.payload) state.selectedUids = [action.payload]
+            else state.selectedUids = []
+            break
+
+          case 'setSelectedUids':
+            state.selectedUids = action.payload
+            page.activeElementsUid = action.payload[0] ?? ''
             break
 
           case 'setBgColor':
