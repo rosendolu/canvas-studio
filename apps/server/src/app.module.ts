@@ -6,6 +6,7 @@ import { ProjectModule } from './project/project.module'
 import { TemplateModule } from './template/template.module'
 import { AssetModule } from './asset/asset.module'
 import { BrandKitModule } from './brandkit/brandkit.module'
+import { ShareModule } from './share/share.module'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BrandKitModule } from './brandkit/brandkit.module'
     TemplateModule,
     AssetModule,
     BrandKitModule,
+    ShareModule,
   ],
 })
 export class AppModule {}
