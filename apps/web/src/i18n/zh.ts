@@ -6,6 +6,7 @@ const zh = {
       editor: '视频编辑器',
       imageEditor: '图片编辑器',
       toggleTheme: '切换主题',
+      elements: '元素',
     },
     home: {
       subtitle: '专业的创意内容创作工具 —— 视频剪辑 · 图片合成 · 实时动画',
@@ -146,9 +147,7 @@ const zh = {
       palette: '调色板',
       addColor: '添加颜色',
     },
-    nav: {
-      elements: '元素',
-    },
+
     common: {
       save: '保存',
       cancel: '取消',

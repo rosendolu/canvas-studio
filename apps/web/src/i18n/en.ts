@@ -6,6 +6,7 @@ const en = {
       editor: 'Video Editor',
       imageEditor: 'Image Editor',
       toggleTheme: 'Toggle theme',
+      elements: 'Elements',
     },
     home: {
       subtitle: 'Professional creative content tool — Video Editing · Image Compositing · Live Animation',
@@ -146,9 +147,7 @@ const en = {
       palette: 'Palette',
       addColor: 'Add Color',
     },
-    nav: {
-      elements: 'Elements',
-    },
+
     common: {
       save: 'Save',
       cancel: 'Cancel',

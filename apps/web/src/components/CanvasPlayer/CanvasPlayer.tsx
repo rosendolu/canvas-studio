@@ -21,6 +21,8 @@ interface CanvasPlayerProps {
   onDeleteElement?: (uid: string) => void
   /** Optional external ref to the Konva Stage (for export). If provided, Player will forward its internal stageRef. */
   stageRef?: React.RefObject<any>
+  /** Read-only mode: disables all interaction (for preview pages) */
+  readOnly?: boolean
 }
 
 /**
@@ -45,7 +47,8 @@ function checkerboardBg(isDark: boolean): React.CSSProperties {
 
 export default function CanvasPlayer({
   elements, activeUid, bgColor, aspectRatio = '16:9',
-  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements, onDeleteElement, stageRef: externalStageRef,
+  drawWidth, drawHeight, onSyncPos, onSetActive, onSetCanvasSize, onUpdateElements, onDeleteElement,
+  stageRef: externalStageRef, readOnly = false,
 }: CanvasPlayerProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ width: 0, height: 0 })
@@ -154,11 +157,11 @@ export default function CanvasPlayer({
               width={renderSize.width}
               height={renderSize.height}
               elements={elements}
-              activeUid={activeUid}
+              activeUid={readOnly ? '' : activeUid}
               bgColor={bgColor}
-              onSyncPos={onSyncPos}
-              onSetActive={onSetActive}
-              onDeleteElement={onDeleteElement}
+              onSyncPos={readOnly ? () => {} : onSyncPos}
+              onSetActive={readOnly ? () => {} : onSetActive}
+              onDeleteElement={readOnly ? undefined : onDeleteElement}
               externalStageRef={externalStageRef}
             />
           </div>

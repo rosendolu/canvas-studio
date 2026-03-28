@@ -15,14 +15,15 @@ import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
 import { LayerPanel } from '../../components/LayerPanel/LayerPanel'
 import { AlignToolbar } from '../../components/AlignToolbar/AlignToolbar'
+import { ShareButton } from '../../components/ShareButton/ShareButton'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
 
 export function ImageEditorPage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch, undo, redo, canUndo, canRedo, selectedUids } = useLiveStore()
+  const [alignBasis, setAlignBasis] = useState<AlignBasis>('canvas')
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
-  const [alignBasis, setAlignBasis] = useState<AlignBasis>('canvas')
 
   // stageRef lifted here so ExportButton (outside CanvasPlayer tree) can access it
   const stageRef = useRef<any>(null)
@@ -152,8 +153,7 @@ export function ImageEditorPage() {
           onChange={handleAspectRatioChange}
           data={ASPECT_RATIO_OPTIONS}
         />
-        {/* Align toolbar — shown when ≥1 element selected */}
-        {(selectedUids.length >= 1 || activeUid) && (
+        {(selectedUids.length >= 1 || !!activeUid) && (
           <AlignToolbar
             selectedCount={selectedUids.length || (activeUid ? 1 : 0)}
             basis={alignBasis}
@@ -185,6 +185,7 @@ export function ImageEditorPage() {
             <IconDownload size={14} />
           </ActionIcon>
         </Tooltip>
+        <ShareButton elements={elements} aspectRatio={aspectRatio} bgColor={page.bgColor} />
       </Group>
 
       {/* Main Area */}
