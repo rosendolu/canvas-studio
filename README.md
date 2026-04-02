@@ -17,35 +17,33 @@
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🖼️ Static Image Elements | Background, sticker, and product image rendering via `react-konva` |
-| 🎭 Avatar with Mask | Digital human elements with circular clip mask, draggable & resizable |
-| 💬 Bubble Text | Inline double-click editing with Konva Group + Text overlay |
-| ✨ APNG Animation | Frame-by-frame APNG playback using `apng-js` + `Konva.Animation` |
-| 🔄 Seamless Carousel | Canvas 2D + requestAnimationFrame infinite scroll (H/V configurable) |
-| 🎴 Slideshow | Multi-image switching with easeInOut slide transition |
-| 🔧 Transformer Controls | 8-anchor drag / scale / rotate with keepRatio |
-| 📊 Timeline Ruler | Canvas 2D ruler with frame/second/minute unit auto-switching |
-| 🌙 Theme Toggle | Mantine light/dark theme with custom brand color |
-| 📤 Image Export | Export canvas as DataURL or Blob via Konva Stage |
+| Feature                  | Description                                                           |
+| ------------------------ | --------------------------------------------------------------------- |
+| 🖼️ Static Image Elements | Background, sticker, and product image rendering via `react-konva`    |
+| 🎭 Avatar with Mask      | Digital human elements with circular clip mask, draggable & resizable |
+| 💬 Bubble Text           | Inline double-click editing with Konva Group + Text overlay           |
+| ✨ APNG Animation        | Frame-by-frame APNG playback using `apng-js` + `Konva.Animation`      |
+| 🔄 Seamless Carousel     | Canvas 2D + requestAnimationFrame infinite scroll (H/V configurable)  |
+| 🎴 Slideshow             | Multi-image switching with easeInOut slide transition                 |
+| 🔧 Transformer Controls  | 8-anchor drag / scale / rotate with keepRatio                         |
+| 📊 Timeline Ruler        | Canvas 2D ruler with frame/second/minute unit auto-switching          |
+| 🌙 Theme Toggle          | Mantine light/dark theme with custom brand color                      |
+| 📤 Image Export          | Export canvas as DataURL or Blob via Konva Stage                      |
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend Framework | React 18 + TypeScript |
-| Build Tool | Vite 5 |
-| UI Component Library | Mantine 7 (light/dark theme support) |
-| Canvas Rendering | Konva + react-konva |
-| State Management | Zustand + Immer |
-| Data Fetching | TanStack Query v5 |
-| Backend Framework | NestJS 10 |
-| Database | MongoDB + Mongoose |
-| API Documentation | Swagger (`/api/docs`) |
-| Package Manager | npm Workspaces (Monorepo) |
+| Layer                | Technology                           |
+| -------------------- | ------------------------------------ |
+| Frontend Framework   | Next.js 16 (App Router) + TypeScript |
+| UI Component Library | Mantine 9 (light/dark theme support) |
+| Canvas Rendering     | Konva + react-konva                  |
+| State Management     | Zustand + Immer                      |
+| Data Fetching        | TanStack Query v5                    |
+| API Layer            | Next.js Route Handlers               |
+| Database             | MongoDB + Mongoose                   |
+| Package Manager      | npm Workspaces (Monorepo)            |
 
 ---
 
@@ -133,24 +131,24 @@ Once the server is running, visit: `http://localhost:3000/api/docs`
 
 ### Canvas API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/canvas` | Create canvas |
-| `GET` | `/api/canvas` | List canvases |
-| `GET` | `/api/canvas/:id` | Get single canvas |
-| `PATCH` | `/api/canvas/:id` | Update canvas info |
-| `PUT` | `/api/canvas/:id/pages` | Save live room state |
-| `PUT` | `/api/canvas/:id/track` | Save editor track state |
-| `POST` | `/api/canvas/:id/duplicate` | Duplicate canvas |
-| `DELETE` | `/api/canvas/:id` | Delete canvas |
+| Method   | Path                        | Description             |
+| -------- | --------------------------- | ----------------------- |
+| `POST`   | `/api/canvas`               | Create canvas           |
+| `GET`    | `/api/canvas`               | List canvases           |
+| `GET`    | `/api/canvas/:id`           | Get single canvas       |
+| `PATCH`  | `/api/canvas/:id`           | Update canvas info      |
+| `PUT`    | `/api/canvas/:id/pages`     | Save live room state    |
+| `PUT`    | `/api/canvas/:id/track`     | Save editor track state |
+| `POST`   | `/api/canvas/:id/duplicate` | Duplicate canvas        |
+| `DELETE` | `/api/canvas/:id`           | Delete canvas           |
 
 ### Project API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/project` | Create project |
-| `GET` | `/api/project` | List projects |
-| `PATCH` | `/api/project/:id` | Update project |
+| Method   | Path               | Description    |
+| -------- | ------------------ | -------------- |
+| `POST`   | `/api/project`     | Create project |
+| `GET`    | `/api/project`     | List projects  |
+| `PATCH`  | `/api/project/:id` | Update project |
 | `DELETE` | `/api/project/:id` | Delete project |
 
 ---

@@ -1,59 +1,49 @@
-import {
-  AppShell,
-  Group,
-  Title,
-  ActionIcon,
-  useMantineColorScheme,
-  Badge,
-} from '@mantine/core';
-import { IconSun, IconMoon, IconBrandGithub } from '@tabler/icons-react';
-import { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+'use client'
 
-interface AppLayoutProps {
-  children: ReactNode;
-}
+import { AppShell, Group, Title, ActionIcon, useMantineColorScheme, Badge } from '@mantine/core'
+import { IconSun, IconMoon, IconBrandGithub } from '@tabler/icons-react'
+import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 
-export function AppLayout({ children }: AppLayoutProps) {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const { t, i18n } = useTranslation();
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+  const { t, i18n } = useTranslation()
 
   const toggleLang = () => {
-    const next = i18n.language === 'zh' ? 'en' : 'zh';
-    i18n.changeLanguage(next);
-    localStorage.setItem('canvas-studio-lang', next);
-  };
+    const next = i18n.language === 'zh' ? 'en' : 'zh'
+    i18n.changeLanguage(next)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('canvas-studio-lang', next)
+    }
+  }
 
   return (
     <AppShell header={{ height: 56 }} padding={0} style={{ height: '100vh' }}>
       <AppShell.Header>
-        <Group h='100%' px='md' justify='space-between'>
-          {/* Logo */}
-          <Link to='/' style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Group gap='sm' style={{ cursor: 'pointer' }}>
+        <Group h="100%" px="md" justify="space-between">
+          <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Group gap="sm" style={{ cursor: 'pointer' }}>
               <Title order={4} style={{ color: 'inherit' }}>
                 {t('appName')}
               </Title>
-              <Badge variant='light' size='sm'>
+              <Badge variant="light" size="sm">
                 {t('beta')}
               </Badge>
             </Group>
           </Link>
 
-          {/* Right actions */}
-          <Group gap='xs'>
+          <Group gap="xs">
             <ActionIcon
-              variant='subtle'
+              variant="subtle"
               onClick={toggleLang}
-              title='切换语言 / Toggle Language'
+              title="切换语言 / Toggle Language"
             >
               <span style={{ fontSize: 13, fontWeight: 600 }}>
                 {i18n.language === 'zh' ? 'EN' : '中'}
               </span>
             </ActionIcon>
             <ActionIcon
-              variant='subtle'
+              variant="subtle"
               onClick={toggleColorScheme}
               aria-label={t('nav.toggleTheme')}
             >
@@ -64,11 +54,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               )}
             </ActionIcon>
             <ActionIcon
-              variant='subtle'
-              component='a'
-              href='https://github.com/rosendolu/canvas-studio'
-              target='_blank'
-              aria-label='GitHub'
+              variant="subtle"
+              component="a"
+              href="https://github.com/rosendolu/canvas-studio"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
             >
               <IconBrandGithub size={18} />
             </ActionIcon>
@@ -82,5 +73,5 @@ export function AppLayout({ children }: AppLayoutProps) {
         {children}
       </AppShell.Main>
     </AppShell>
-  );
+  )
 }
