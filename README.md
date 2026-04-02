@@ -52,26 +52,17 @@
 ```
 canvas-studio/
 ├── apps/
-│   ├── web/                        # React frontend
-│   │   └── src/
-│   │       ├── components/
-│   │       │   ├── CanvasPlayer/   # Adaptive canvas container + Konva Stage
-│   │       │   ├── CanvasElements/ # All element type components
-│   │       │   ├── Timeline/       # Timeline ruler
-│   │       │   ├── ElementMenu/    # Asset panel
-│   │       │   └── Layout/         # AppLayout + theme toggle
-│   │       ├── pages/
-│   │       │   ├── home/           # Homepage
-│   │       │   ├── editor/         # Video editor (timeline mode)
-│   │       │   └── live/           # Live room (real-time editing)
-│   │       └── store/
-│   │           ├── editorStore.ts  # Video editor state
-│   │           └── liveStore.ts    # Live room state
-│   └── server/                     # NestJS backend
+│   └── web/                        # Next.js 16 frontend
 │       └── src/
-│           ├── canvas/             # Canvas CRUD API
-│           ├── project/            # Project CRUD API
-│           └── app.module.ts
+│           ├── app/               # Next.js App Router pages
+│           │   ├── (main)/        # Route group: editor, image-editor, live
+│           │   ├── preview/        # SSR preview pages
+│           │   └── api/            # Next.js Route Handlers (Canvas, Project, etc.)
+│           ├── components/         # CanvasPlayer, CanvasElements, Layout, etc.
+│           ├── lib/                # MongoDB models, DB connection, utilities
+│           ├── hooks/              # TanStack Query hooks for API calls
+│           ├── store/              # Zustand stores (editor, live)
+│           └── i18n/               # i18next translations (en, zh)
 └── packages/
     └── canvas-core/                # Shared types + utilities
         └── src/
