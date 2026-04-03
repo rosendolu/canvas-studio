@@ -93,28 +93,16 @@ npm install
 ### Development
 
 ```bash
-# Start both frontend and backend
 npm run dev
-
-# Frontend only — http://localhost:5173
-npm run dev:web
-
-# Backend only — http://localhost:3000
-npm run dev:server
 ```
 
 ### Environment Variables
 
-Create `apps/server/.env`:
+Create `apps/web/.env`:
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/canvas-studio
-PORT=3000
 ```
-
-### API Documentation
-
-Once the server is running, visit: `http://localhost:3000/api/docs`
 
 ---
 
