@@ -123,7 +123,7 @@ export function AvatarElement({ item }: AvatarElementProps) {
         ref={maskTransformRef}
         visible
         centeredScaling
-        rotateEnabled={false}
+        rotateEnabled={true}
         flipEnabled={false}
         anchorFill="#409eff"
         anchorStroke="#409eff"
