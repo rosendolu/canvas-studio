@@ -123,10 +123,4 @@ Produce the final answer using this template (keep it concise, use headings):
 - MVP slice:
 - Timeline:
 - Decision log:
-```
-
-## Guardrails
-
-- Keep plans realistic for the stated team/time constraints.
-- Avoid “more features” bias; include at least one plan that reduces risk or improves reliability.
-- If the user explicitly requests a different ROI framework, adapt, but keep a table and a single recommended plan.
+***
