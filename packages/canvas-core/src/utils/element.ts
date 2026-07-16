@@ -59,8 +59,10 @@ export function fitCanvasResize(el: CanvasElement, ratio: number) {
   if (el.mask) {
     el.mask.scaleX *= ratio
     el.mask.scaleY *= ratio
-    el.mask.left *= ratio
-    el.mask.top *= ratio
+    // Fix: account for offsetX/offsetY when scaling mask coordinates
+    // to prevent drift during canvas resize
+    el.mask.left = (el.mask.left + el.mask.offsetX) * ratio - el.mask.offsetX
+    el.mask.top = (el.mask.top + el.mask.offsetY) * ratio - el.mask.offsetY
   }
 }
 
