@@ -91,8 +91,10 @@ export function changeOrientation(
     el.width = ratio * el.height
 
     if (el.mask) {
-      el.mask.left = ((el.mask.left + el.mask.offsetX) / prevCanvasWidth) * canvasWidth
-      el.mask.top = ((el.mask.top + el.mask.offsetY) / prevCanvasHeight) * canvasHeight
+      // Mask coordinates are always absolute (no offsetX/offsetY)
+      // Removed +offsetX/Y per PR #20 — mask coords should not include offset
+      el.mask.left = (el.mask.left / prevCanvasWidth) * canvasWidth
+      el.mask.top = (el.mask.top / prevCanvasHeight) * canvasHeight
       el.mask.offsetX = 0
       el.mask.offsetY = 0
     }

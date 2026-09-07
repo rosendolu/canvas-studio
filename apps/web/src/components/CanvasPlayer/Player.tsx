@@ -129,7 +129,9 @@ export default function Player({
     }
     let active = stageRef.current?.findOne(`#${activeUid}`)
 
-    if (String(active?.attrs?.name || '').endsWith('bubbleText')) {
+    // Fix: For bubbleText and avatar elements, attach transformer to the group
+    const activeObj = elements.find(el => el.uid === activeUid)
+    if (activeObj?.type === 'bubbleText' || activeObj?.type === 'avatar') {
       const activeGroup = stageRef.current?.findOne(`#${activeUid}$$group`)
       active = activeGroup
     }
