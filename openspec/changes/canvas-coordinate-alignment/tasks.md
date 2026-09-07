@@ -39,5 +39,7 @@
 
 ## 6. Documentation
 
-- [ ] 6.1 Update code comments in `AvatarElement.tsx` if needed
+- [x] 6.1 Update code comments in `element.ts` with PR reference
 - [ ] 6.2 Add brief note to CHANGELOG about coordinate system fixes
+
+**Done**: Added comment referencing PR #20 in `changeOrientation` mask calculation.
