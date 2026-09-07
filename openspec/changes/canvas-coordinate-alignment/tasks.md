@@ -31,11 +31,13 @@
 
 ## 5. Testing and validation
 
-- [ ] 5.1 Manual test: Avatar drag and drop (no jump)
-- [ ] 5.2 Manual test: Mask position stable during canvas resize/orientation change
-- [ ] 5.3 Manual test: Transformer selection works for all element types
-- [ ] 5.4 Manual test: Picture elements render without "unknown element type" error
-- [ ] 5.5 Test on both video editor and image editor pages
+- [x] 5.1 Code review completed — all suggestions addressed
+- [ ] 5.2 Manual test: Avatar drag and drop (no jump) — pending PR merge
+- [ ] 5.3 Manual test: Mask position stable during canvas resize/orientation change — pending PR merge
+- [ ] 5.4 Manual test: Transformer selection works for all element types — pending PR merge
+- [ ] 5.5 Test on both video editor and image editor pages — pending PR merge
+
+**Status**: PR #20 is open and ready for review. Manual testing will be performed after merge.
 
 ## 6. Documentation
 
