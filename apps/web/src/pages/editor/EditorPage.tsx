@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next'
 import { ElementMenu } from '../../components/ElementMenu/ElementMenu'
 import { useCanvasConfig } from '../../hooks/useCanvasConfig'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import { nanoid } from 'nanoid'
 
 export function EditorPage() {
   const {
@@ -76,23 +78,82 @@ export function EditorPage() {
     dispatch({ type: 'setCurrentFrame', payload: 0 })
   }
 
-  // Keyboard undo/redo
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      const tag = (e.target as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        undo()
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault()
-        redo()
-      }
+  // Clipboard state for copy/paste
+  const clipboardRef = useRef<CanvasElement | null>(null)
+
+  // Keyboard shortcuts callbacks
+  const handleDelete = useCallback(() => {
+    if (chooseDataUid) {
+      dispatch({ type: 'removeTrackElement', payload: { uid: chooseDataUid } })
     }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [undo, redo])
+  }, [chooseDataUid, dispatch])
+
+  const handleDuplicate = useCallback(() => {
+    if (!activeElement) return
+    const newElement: CanvasElement = {
+      ...activeElement,
+      uid: nanoid(),
+      left: activeElement.left + 20,
+      top: activeElement.top + 20,
+    }
+    dispatch({ type: 'addTrackElement', payload: { element: newElement } })
+  }, [activeElement, dispatch])
+
+  const handleCopy = useCallback(() => {
+    if (activeElement) {
+      clipboardRef.current = { ...activeElement }
+    }
+  }, [activeElement])
+
+  const handlePaste = useCallback(() => {
+    if (clipboardRef.current) {
+      const newElement: CanvasElement = {
+        ...clipboardRef.current,
+        uid: nanoid(),
+        left: clipboardRef.current.left + 20,
+        top: clipboardRef.current.top + 20,
+      }
+      dispatch({ type: 'addTrackElement', payload: { element: newElement } })
+    }
+  }, [dispatch])
+
+  const handleNudge = useCallback((dx: number, dy: number) => {
+    if (!chooseDataUid || !activeElement) return
+    dispatch({
+      type: 'updateElementPos',
+      payload: {
+        uid: chooseDataUid,
+        updates: {
+          left: activeElement.left + dx,
+          top: activeElement.top + dy,
+        },
+      },
+    })
+  }, [chooseDataUid, activeElement, dispatch])
+
+  const handleSelectAll = useCallback(() => {
+    // Select the first element if any exist
+    const allElements = track.flatMap(t => t.lineList)
+    if (allElements.length > 0) {
+      dispatch({ type: 'setActiveUid', payload: allElements[0].uid })
+    }
+  }, [track, dispatch])
+
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts(activeElement, {
+    onDelete: handleDelete,
+    onDuplicate: handleDuplicate,
+    onCopy: handleCopy,
+    onPaste: handlePaste,
+    onNudge: handleNudge,
+    onUndo: undo,
+    onRedo: redo,
+    onPlayPause: handlePlay,
+    onSelectAll: handleSelectAll,
+  }, {
+    enabled: true,
+    enablePlayPause: true,
+  })
 
   const handleAspectRatioChange = useCallback((v: string) => {
     saveRatio(v)
