@@ -112,6 +112,9 @@ export function EditorPage() {
         uid: nanoid(),
         left: clipboardRef.current.left + 20,
         top: clipboardRef.current.top + 20,
+        // Clear live-room specific bindings to avoid conflicts
+        speechItemUid: undefined,
+        faqReplyItemUid: undefined,
       }
       dispatch({ type: 'addTrackElement', payload: { element: newElement } })
     }

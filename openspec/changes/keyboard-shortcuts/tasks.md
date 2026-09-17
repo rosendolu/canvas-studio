@@ -11,12 +11,14 @@
 - [x] 2.2 Wire up callbacks: onDelete, onDuplicate, onCopy, onPaste, onNudge
 - [x] 2.3 Add Space key for play/pause toggle
 - [x] 2.4 Ensure shortcuts disabled during text input
+- [x] 2.5 Clear live-room bindings on paste (speechItemUid, faqReplyItemUid)
 
 ## 3. Integrate into LivePage
 
 - [x] 3.1 Import useKeyboardShortcuts in LivePage.tsx
 - [x] 3.2 Wire up callbacks (no play/pause in LivePage)
 - [x] 3.3 Ensure shortcuts disabled during text input
+- [x] 3.4 Clear timeline fields on paste (start, end, muted, volume)
 
 ## 4. Add visual hints
 

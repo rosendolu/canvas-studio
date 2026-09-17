@@ -83,6 +83,11 @@ export function LivePage() {
         uid: nanoid(),
         left: clipboardRef.current.left + 20,
         top: clipboardRef.current.top + 20,
+        // Clear timeline-specific fields for live room
+        start: undefined,
+        end: undefined,
+        muted: undefined,
+        volume: undefined,
       }
       dispatch({ type: 'addElement', payload: newElement })
     }
