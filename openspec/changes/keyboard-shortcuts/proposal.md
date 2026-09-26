@@ -1,47 +1,43 @@
-## Why
+---
+Change: keyboard-shortcuts
+Status: proposed
+Phase: Proposal
+---
 
-Canvas Studio currently requires mouse interaction for all operations. Users cannot:
-- Delete selected elements without clicking a button
-- Undo/redo without toolbar buttons
-- Nudge elements by pixel amounts
-- Duplicate or copy/paste elements
+Overview
+- This proposal documents the Phase 2 open-spec change to implement a universal keyboard shortcuts system for Canvas Studio editor and playback workflows.
+- Derived from the Iterate-Automatically Requirements Review (Plan A: Defect Fix – Keyboard Shortcuts System).
 
-This creates friction for power users and slows down common workflows. Keyboard shortcuts are a standard expectation in creative tools (Figma, Photoshop, Canva).
+Rationale
+- ROI: 25.00 (I=4, R=5, C=5, E=2)
+- Benefit: Improves speed, accessibility, and foundation for future multi-select features.
+- Scope: In-scope: core shortcuts for deletion, undo/redo, nudging; cross-platform key combos; quick help hints. Out-of-scope: customizable keybindings; deep conflicts with browser shortcuts; cross-language layout adaptations in MVP.
 
-## What Changes
+Scope
+- In-scope:
+  - Delete/Backspace deletes selected element
+  - Undo/Redo via Ctrl/Cmd+Z / Ctrl/Cmd+Y or Ctrl/Cmd+Shift+Z (existing plumbing extended)
+  - Nudge via Arrow keys (1px) and Shift+Arrow for larger steps (10px)
+  - Basic keyboard shortcut hints (tooltips)
+- Out-of-scope:
+  - Reconfiguring keyboard layout per user
+  - Complex conflict-resolution with browser/system shortcuts beyond documented defaults
 
-Implement a comprehensive keyboard shortcuts system across EditorPage and LivePage:
+MVP and Milestones
+- MVP (Week 1): Implement Delete, Undo, Redo, and Nudge; display simple shortcuts hints
+- Extended (Week 2): Implement Select All, Duplicate, Copy/Paste, plus timeline zoom and play/pause shortcuts
 
-1. **Element Operations**:
-   - `Delete/Backspace`: Delete selected element
-   - `Ctrl/Cmd+D`: Duplicate selected element
-   - `Ctrl/Cmd+C` then `Ctrl/Cmd+V`: Copy/paste element
+Dependencies
+- None external. Builds on existing undo/redo infrastructure and selection model.
 
-2. **Navigation & Nudge**:
-   - `↑↓←→`: Nudge selected element by 1px
-   - `Shift+↑↓←→`: Nudge selected element by 10px
+Acceptance Criteria
+- All four MVP shortcuts work consistently across EditorPage and LivePlay components when a single element is selected
+- Keyboard focus does not hijack text inputs, search fields, or other focusable controls
+- Clear in-UI hints show available shortcuts
 
-3. **Playback (EditorPage only)**:
-   - `Space`: Play/pause timeline playback
+Change Location
+- openspec/changes/keyboard-shortcuts
 
-4. **Visual Feedback**:
-   - Tooltip hints showing available shortcuts
-   - Toast notification on copy
-
-## Capabilities
-
-### Modified Capabilities
-
-- `editor-page`: Keyboard-driven element manipulation
-- `live-page`: Keyboard-driven element manipulation
-- `canvas-player`: Nudge support via keyboard events
-
-### New Capabilities
-
-- `keyboard-shortcuts`: Centralized shortcut registry and handler
-
-## Impact
-
-- **Frontend (apps/web)**: Add keyboard event handlers to EditorPage.tsx and LivePage.tsx, create useKeyboardShortcuts hook
-- **Backend**: No changes required
-- **Shared (packages/canvas-core)**: No changes required
+Next Steps
+- Phase 3: Implement tasks via /opsx:apply and perform code-review on the resulting PR.
+- Confirm with Mafuli before archiving.
