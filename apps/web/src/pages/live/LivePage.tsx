@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import {
   Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
   useMantineColorScheme,
@@ -10,6 +10,8 @@ import { useLiveStore } from '../../store/liveStore'
 import type { CanvasElement } from '@canvas-studio/canvas-core'
 import { useTranslation } from 'react-i18next'
 import { PropertyPanel } from '../../components/PropertyPanel/PropertyPanel'
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import { nanoid } from 'nanoid'
 
 export function LivePage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch } = useLiveStore()
@@ -46,6 +48,88 @@ export function LivePage() {
   }, [dispatch])
 
   const activeElement = elements.find(el => el.uid === activeUid)
+
+  // Clipboard state for copy/paste
+  const clipboardRef = useRef<CanvasElement | null>(null)
+
+  // Keyboard shortcuts callbacks
+  const handleDelete = useCallback(() => {
+    if (activeUid) {
+      dispatch({ type: 'removeElement', payload: activeUid })
+    }
+  }, [activeUid, dispatch])
+
+  const handleDuplicate = useCallback(() => {
+    if (!activeElement) return
+    const newElement: CanvasElement = {
+      ...activeElement,
+      uid: nanoid(),
+      left: activeElement.left + 20,
+      top: activeElement.top + 20,
+    }
+    dispatch({ type: 'addElement', payload: newElement })
+  }, [activeElement, dispatch])
+
+  const handleCopy = useCallback(() => {
+    if (activeElement) {
+      clipboardRef.current = { ...activeElement }
+    }
+  }, [activeElement])
+
+  const handlePaste = useCallback(() => {
+    if (clipboardRef.current) {
+      const newElement: CanvasElement = {
+        ...clipboardRef.current,
+        uid: nanoid(),
+        left: clipboardRef.current.left + 20,
+        top: clipboardRef.current.top + 20,
+        // Clear timeline-specific fields for live room
+        start: undefined,
+        end: undefined,
+        muted: undefined,
+        volume: undefined,
+      }
+      dispatch({ type: 'addElement', payload: newElement })
+    }
+  }, [dispatch])
+
+  const handleNudge = useCallback((dx: number, dy: number) => {
+    if (!activeUid || !activeElement) return
+    dispatch({
+      type: 'updateElementAttr',
+      payload: {
+        uid: activeUid,
+        updates: {
+          left: activeElement.left + dx,
+          top: activeElement.top + dy,
+        },
+      },
+    })
+  }, [activeUid, activeElement, dispatch])
+
+  const { undo, redo, canUndo, canRedo } = useLiveStore()
+
+  const handleSelectAll = useCallback(() => {
+    // Select the first element if any exist
+    if (elements.length > 0) {
+      dispatch({ type: 'activeElement', payload: elements[0].uid })
+    }
+  }, [elements, dispatch])
+
+  // Initialize keyboard shortcuts
+  useKeyboardShortcuts(activeElement, {
+    onDelete: handleDelete,
+    onDuplicate: handleDuplicate,
+    onCopy: handleCopy,
+    onPaste: handlePaste,
+    onNudge: handleNudge,
+    onUndo: undo,
+    onRedo: redo,
+    onSelectAll: handleSelectAll,
+  }, {
+    enabled: true,
+    enablePlayPause: false,
+  })
 
   return (
     <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
