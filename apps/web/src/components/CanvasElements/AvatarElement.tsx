@@ -19,7 +19,7 @@ interface AvatarElementProps {
  *       draggable, transforms with its own Transformer (blue dashed)
  *
  * syncPosToState flow:
- *   - group dragEnd  → updates item.offsetX / item.offsetY (Player.tsx)
+ *   - group dragEnd  → updates item.left / item.top (Player.tsx)
  *   - mask dragEnd   → updates mask.left / mask.top
  *   - mask transformEnd → updates mask.scaleX / mask.scaleY
  */

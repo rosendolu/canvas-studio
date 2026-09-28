@@ -14,6 +14,7 @@ export type ElementType =
   | 'slideshow'            // 幻灯片切换
   | 'apng'                 // APNG 动态贴图
   | 'product'              // 商品图（直播间专用）
+  | 'picture'              // 普通图片元素
   | 'solid-color'          // 纯色背景
 
 // ---------------- Element Mask (Avatar circle clip) ----------------
