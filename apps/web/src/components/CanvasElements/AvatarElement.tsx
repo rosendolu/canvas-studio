@@ -39,13 +39,15 @@ export function AvatarElement({ item }: AvatarElementProps) {
   const [image] = useImage(srcUrl, 'anonymous')
 
   // clipFunc: circle clip following the mask Circle shape
-  const clipFunc = hasMask
-    ? (ctx: CanvasRenderingContext2D) => {
+  const clipFunc: any = hasMask
+    ? (ctx: any) => {
         const shape = maskShapeRef.current
         if (!shape) return
         const x      = shape.x()
         const y      = shape.y()
         const radius = (shape.radius() || shape.getWidth() / 2) * shape.scaleX()
+        // CanvasRenderingContext2D typed clip requires a function signature compatible with Konva's clipFunc type.
+        // Be permissive by using any here to avoid strict typing issues across versions.
         ctx.arc(x, y, radius, 0, Math.PI * 2, false)
       }
     : undefined
