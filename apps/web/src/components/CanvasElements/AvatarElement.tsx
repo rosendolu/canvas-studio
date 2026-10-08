@@ -39,8 +39,8 @@ export function AvatarElement({ item }: AvatarElementProps) {
   const [image] = useImage(srcUrl, 'anonymous')
 
   // clipFunc: circle clip following the mask Circle shape
-  const clipFunc = hasMask
-    ? (ctx: CanvasRenderingContext2D) => {
+  const clipFunc: any = hasMask
+    ? (ctx: any) => {
         const shape = maskShapeRef.current
         if (!shape) return
         const x      = shape.x()

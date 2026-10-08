@@ -48,7 +48,7 @@ export default function Player({
   // Forward stageRef to external ref if provided (for export)
   // deps: [externalStageRef] ensures forwarding is re-applied if the prop changes
   useLayoutEffect(() => {
-    if (externalStageRef) {
+    if (externalStageRef?.current !== undefined) {
       (externalStageRef as React.MutableRefObject<any>).current = stageRef.current
     }
   }, [externalStageRef])
@@ -81,7 +81,7 @@ export default function Player({
     const updates: Partial<CanvasElement> = {}
 
     if (shapeType === 'mask' && obj.mask) {
-      const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
+      const radius = (target.radius?.() ?? ((target.getWidth?.() ?? 0) / 2)) || 0
       updates.mask = {
         ...obj.mask,
         left, top,

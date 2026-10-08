@@ -25,6 +25,7 @@ export function EditorPage() {
     dispatch, undo, redo, canUndo, canRedo,
   } = useEditorStore()
   const { t } = useTranslation()
+  const activeElement = track.flatMap(t => t.lineList).find(el => el.uid === chooseDataUid)
   const { colorScheme } = useMantineColorScheme()
   const stageBg = colorScheme === 'light' ? '#e9ecef' : '#2c2c2c'
 
@@ -208,10 +209,6 @@ export function EditorPage() {
   const handleDeleteElement = useCallback((uid: string) => {
     dispatch({ type: 'removeTrackElement', payload: { uid } })
   }, [dispatch])
-
-  const activeElement = track
-    .flatMap(t => t.lineList)
-    .find(el => el.uid === chooseDataUid)
 
   const timelineUserConfig = { start: 0, step: fps, scale: trackScale }
 

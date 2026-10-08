@@ -1,0 +1,15 @@
+change: defect-fix-typescript-errors
+schema: spec-driven
+status: proposed
+phase: Proposal
+created: 2026-10-08
+artifacts:
+  proposal:
+    path: proposal.md
+    status: done
+  design:
+    path: design.md
+    status: done
+  tasks:
+    path: tasks.md
+    status: done
