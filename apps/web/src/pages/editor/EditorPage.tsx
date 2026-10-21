@@ -30,6 +30,11 @@ export function EditorPage() {
 
   const { aspectRatio: savedRatio, setAspectRatio: saveRatio, ASPECT_RATIO_OPTIONS } = useCanvasConfig()
 
+  // Derived state: active element
+  const activeElement = track
+    .flatMap(t => t.lineList)
+    .find(el => el.uid === chooseDataUid)
+
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false)
   const playFrameRef = useRef<number | null>(null)
@@ -208,10 +213,6 @@ export function EditorPage() {
   const handleDeleteElement = useCallback((uid: string) => {
     dispatch({ type: 'removeTrackElement', payload: { uid } })
   }, [dispatch])
-
-  const activeElement = track
-    .flatMap(t => t.lineList)
-    .find(el => el.uid === chooseDataUid)
 
   const timelineUserConfig = { start: 0, step: fps, scale: trackScale }
 

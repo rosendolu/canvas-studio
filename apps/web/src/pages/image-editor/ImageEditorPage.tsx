@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  Box, Group, ActionIcon, Tooltip, SegmentedControl, Text,
+  Box, Group, ActionIcon, Tooltip, SegmentedControl, Text, Tabs,
   useMantineColorScheme,
 } from '@mantine/core'
 import { IconPointer, IconDownload, IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react'
@@ -17,6 +17,10 @@ import { LayerPanel } from '../../components/LayerPanel/LayerPanel'
 import { AlignToolbar } from '../../components/AlignToolbar/AlignToolbar'
 import { ShareButton } from '../../components/ShareButton/ShareButton'
 import { useCanvasExport } from '../../hooks/useCanvasExport'
+import { AssetLibraryPanel } from '../../components/Library/AssetLibraryPanel'
+import { TemplatePanel } from '../../components/Library/TemplatePanel'
+import { BrandKitPanel } from '../../components/Library/BrandKitPanel'
+import type { ApiBrandKit } from '../../api/libraryApi'
 
 export function ImageEditorPage() {
   const { pages, drawWidth, drawHeight, aspectRatio, dispatch, undo, redo, canUndo, canRedo, selectedUids } = useLiveStore()

@@ -44,7 +44,8 @@ function assetToElement(asset: ApiAsset, drawWidth: number, drawHeight: number):
     scaleX: 1, scaleY: 1, rotation: 0, offsetX: 0, offsetY: 0,
     visible: true, opacity: 1,
   }
-  return initElementPos(base, drawWidth, drawHeight)
+  initElementPos(base, { width: drawWidth, height: drawHeight })
+  return base
 }
 
 export function AssetLibraryPanel({ drawWidth, drawHeight, onInsert }: AssetLibraryPanelProps) {
