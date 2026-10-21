@@ -82,7 +82,7 @@ export function AvatarElement({ item }: AvatarElementProps) {
       onMouseDown={() => setActiveUid(item.type, item.uid)}
     >
       {/* Clipped image */}
-      <Group clipFunc={clipFunc}>
+      <Group clipFunc={clipFunc as any}>
         <KonvaImage
           ref={imageRef}
           id={item.uid}

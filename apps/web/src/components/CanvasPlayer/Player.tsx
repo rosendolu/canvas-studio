@@ -81,7 +81,7 @@ export default function Player({
     const updates: Partial<CanvasElement> = {}
 
     if (shapeType === 'mask' && obj.mask) {
-      const radius = target.radius?.() ?? target.getWidth?.() / 2 ?? 0
+      const radius = target.radius?.() ?? (target.getWidth?.() ?? 0) / 2
       updates.mask = {
         ...obj.mask,
         left, top,
